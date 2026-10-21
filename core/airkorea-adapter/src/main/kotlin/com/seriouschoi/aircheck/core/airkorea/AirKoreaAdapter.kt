@@ -19,27 +19,60 @@ data class AirKoreaBody(val body: AirKoreaItems? = null)
 @Serializable
 data class AirKoreaItems(val items: List<AirKoreaItem> = emptyList())
 
+/**
+ * 에어코리아 실시간 대기질 측정 데이터
+ *
+ * 측정값이 없거나 기기 이상 시 "-"로 내려옴.
+ * toIntOrNull() / toDoubleOrNull() 으로 파싱하면 null 처리 가능.
+ *
+ * 등급 기준 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨)
+ *
+ * 미매핑 필드 (API에는 존재, 현재 미사용):
+ *   - pm10Grade1h, pm25Grade1h : 1시간 등급 (ver 1.3 이상)
+ *   - pm10Flag, pm25Flag, so2Flag, coFlag, o3Flag, no2Flag : 측정기기 상태 (null이면 정상, 값 있으면 이상)
+ *   - mangName : 측정망 이름
+ */
 @Serializable
 data class AirKoreaItem(
+    /** 측정소명 (예: "중구", "강남구") */
     val stationName: String = "",
+    /** 시도명 (예: "서울", "경기") */
     val sidoName: String = "",
+    /** 측정일시 (yyyy-MM-dd HH:mm) */
     val dataTime: String = "",
-    // 미세먼지
+
+    // ── 미세먼지 ──────────────────────────────────────────────────────────────
+    /** PM10 농도 (㎍/㎥) */
     val pm10Value: String = "-",
+    /** PM10 등급. AirQualityResponse에 미전달 (현재 미사용) */
     val pm10Grade: String = "-",
+    /** PM2.5 농도 (㎍/㎥) */
     val pm25Value: String = "-",
+    /** PM2.5 등급. AirQualityResponse에 미전달 (현재 미사용) */
     val pm25Grade: String = "-",
-    // 통합지수
+
+    // ── 통합지수 ──────────────────────────────────────────────────────────────
+    /** 통합대기환경지수 (0~500) */
     val khaiValue: String = "-",
+    /** 통합대기환경지수 등급 */
     val khaiGrade: String = "-",
-    // 가스류
-    val so2Value: String = "-",    // 아황산가스 (ppm)
+
+    // ── 가스류 ────────────────────────────────────────────────────────────────
+    /** 아황산가스 농도 (ppm) */
+    val so2Value: String = "-",
+    /** 아황산가스 등급. AirQualityResponse에 미전달 (현재 미사용) */
     val so2Grade: String = "-",
-    val coValue: String = "-",     // 일산화탄소 (ppm)
+    /** 일산화탄소 농도 (ppm) */
+    val coValue: String = "-",
+    /** 일산화탄소 등급. AirQualityResponse에 미전달 (현재 미사용) */
     val coGrade: String = "-",
-    val o3Value: String = "-",     // 오존 (ppm)
+    /** 오존 농도 (ppm) */
+    val o3Value: String = "-",
+    /** 오존 등급. AirQualityResponse에 미전달 (현재 미사용) */
     val o3Grade: String = "-",
-    val no2Value: String = "-",    // 이산화질소 (ppm)
+    /** 이산화질소 농도 (ppm) */
+    val no2Value: String = "-",
+    /** 이산화질소 등급. AirQualityResponse에 미전달 (현재 미사용) */
     val no2Grade: String = "-"
 )
 
