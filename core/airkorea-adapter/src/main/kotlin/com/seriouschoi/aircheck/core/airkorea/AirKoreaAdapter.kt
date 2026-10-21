@@ -20,36 +20,54 @@ data class AirKoreaBody(val body: AirKoreaItems? = null)
 data class AirKoreaItems(val items: List<AirKoreaItem> = emptyList())
 
 /**
- * 에어코리아 실시간 대기질 측정 데이터
+ * 에어코리아 실시간 대기질 측정 데이터 (ver=1.5 기준)
  *
  * 측정값이 없거나 기기 이상 시 "-"로 내려옴.
  * toIntOrNull() / toDoubleOrNull() 으로 파싱하면 null 처리 가능.
  *
  * 등급 기준 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨)
  *
- * 미매핑 필드 (API에는 존재, 현재 미사용):
- *   - pm10Grade1h, pm25Grade1h : 1시간 등급 (ver 1.3 이상)
- *   - pm10Flag, pm25Flag, so2Flag, coFlag, o3Flag, no2Flag : 측정기기 상태 (null이면 정상, 값 있으면 이상)
- *   - mangName : 측정망 이름
+ * pm10Grade/pm25Grade = 24시간 등급, pm10Grade1h/pm25Grade1h = 1시간 등급.
+ * 현재 화면에 1시간 농도(pm10Value)와 24시간 등급(pm10Grade)을 함께 쓰고 있어 시간 기준이 다름 — 추후 검토 필요.
+ *
+ * Flag 필드: 값이 있으면 비정상 상태 (점검및교정/장비점검/자료이상/통신장애). null이면 정상.
+ * 현재 Flag를 확인하지 않아 비정상 데이터가 정상처럼 처리될 수 있음 — 추후 개선 필요.
  */
 @Serializable
 data class AirKoreaItem(
-    /** 측정소명 (예: "중구", "강남구") */
+    /** 측정소명 (예: "중구", "강남구"). ver≥1.4부터 응답에 포함 */
     val stationName: String = "",
-    /** 시도명 (예: "서울", "경기") */
+    /** 측정소 코드. ver≥1.4부터 응답에 포함. 현재 AirQualityResponse에 미전달 */
+    val stationCode: String = "",
+    /** 시도명 (예: "서울", "경기"). API 응답이 아닌 StationInfo에서 채워짐 */
     val sidoName: String = "",
     /** 측정일시 (yyyy-MM-dd HH:mm) */
     val dataTime: String = "",
+    /** 측정망 정보 (도시대기/도로변대기/국가배경농도/교외대기/항만). ver≥1.2. 현재 미사용 */
+    val mangName: String = "",
 
     // ── 미세먼지 ──────────────────────────────────────────────────────────────
-    /** PM10 농도 (㎍/㎥) */
+    /** PM10 농도 (㎍/㎥, 1시간값) */
     val pm10Value: String = "-",
-    /** PM10 등급. AirQualityResponse에 미전달 (현재 미사용) */
+    /** PM10 24시간 등급. 현재 AirQualityResponse에 미전달 */
     val pm10Grade: String = "-",
-    /** PM2.5 농도 (㎍/㎥) */
+    /** PM10 24시간 예측이동농도 (㎍/㎥). ver≥1.1. 미세먼지 경보 발령 기준값 (#46 연관). 현재 미사용 */
+    val pm10Value24: String = "-",
+    /** PM10 1시간 등급. ver≥1.3. 현재 미사용 */
+    val pm10Grade1h: String = "-",
+    /** PM10 측정기기 상태 플래그. null이면 정상. 현재 미사용 */
+    val pm10Flag: String? = null,
+
+    /** PM2.5 농도 (㎍/㎥, 1시간값). ver≥1.0 */
     val pm25Value: String = "-",
-    /** PM2.5 등급. AirQualityResponse에 미전달 (현재 미사용) */
+    /** PM2.5 24시간 등급. 현재 AirQualityResponse에 미전달 */
     val pm25Grade: String = "-",
+    /** PM2.5 24시간 예측이동농도 (㎍/㎥). ver≥1.1. 미세먼지 경보 발령 기준값 (#46 연관). 현재 미사용 */
+    val pm25Value24: String = "-",
+    /** PM2.5 1시간 등급. ver≥1.3. 현재 미사용 */
+    val pm25Grade1h: String = "-",
+    /** PM2.5 측정기기 상태 플래그. null이면 정상. 현재 미사용 */
+    val pm25Flag: String? = null,
 
     // ── 통합지수 ──────────────────────────────────────────────────────────────
     /** 통합대기환경지수 (0~500) */
@@ -58,22 +76,33 @@ data class AirKoreaItem(
     val khaiGrade: String = "-",
 
     // ── 가스류 ────────────────────────────────────────────────────────────────
-    /** 아황산가스 농도 (ppm) */
+    /** 아황산가스 농도 (ppm, ver≥1.5부터 소수점 4자리) */
     val so2Value: String = "-",
-    /** 아황산가스 등급. AirQualityResponse에 미전달 (현재 미사용) */
+    /** 아황산가스 등급. 현재 AirQualityResponse에 미전달 */
     val so2Grade: String = "-",
-    /** 일산화탄소 농도 (ppm) */
+    /** 아황산가스 측정기기 상태 플래그. null이면 정상. 현재 미사용 */
+    val so2Flag: String? = null,
+
+    /** 일산화탄소 농도 (ppm, ver≥1.5부터 소수점 2자리) */
     val coValue: String = "-",
-    /** 일산화탄소 등급. AirQualityResponse에 미전달 (현재 미사용) */
+    /** 일산화탄소 등급. 현재 AirQualityResponse에 미전달 */
     val coGrade: String = "-",
-    /** 오존 농도 (ppm) */
+    /** 일산화탄소 측정기기 상태 플래그. null이면 정상. 현재 미사용 */
+    val coFlag: String? = null,
+
+    /** 오존 농도 (ppm, ver≥1.5부터 소수점 4자리) */
     val o3Value: String = "-",
-    /** 오존 등급. AirQualityResponse에 미전달 (현재 미사용) */
+    /** 오존 등급. 현재 AirQualityResponse에 미전달 */
     val o3Grade: String = "-",
-    /** 이산화질소 농도 (ppm) */
+    /** 오존 측정기기 상태 플래그. null이면 정상. 현재 미사용 */
+    val o3Flag: String? = null,
+
+    /** 이산화질소 농도 (ppm, ver≥1.5부터 소수점 4자리) */
     val no2Value: String = "-",
-    /** 이산화질소 등급. AirQualityResponse에 미전달 (현재 미사용) */
-    val no2Grade: String = "-"
+    /** 이산화질소 등급. 현재 AirQualityResponse에 미전달 */
+    val no2Grade: String = "-",
+    /** 이산화질소 측정기기 상태 플래그. null이면 정상. 현재 미사용 */
+    val no2Flag: String? = null
 )
 
 // ── Adapter 구현 ───────────────────────────────────────────────────────────
