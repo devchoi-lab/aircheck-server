@@ -6,9 +6,14 @@ import kotlinx.serialization.Serializable
 /**
  * 측정기기 상태 플래그.
  * null이면 정상. 값이 있으면 해당 시간대 측정값 신뢰 불가.
+ *
+ * @param apiValue 에어코리아 API에서 내려오는 한글 문자열
  */
-enum class MeasurementFlag {
-    점검및교정, 장비점검, 자료이상, 통신장애
+enum class MeasurementFlag(val apiValue: String) {
+    INSPECTION_AND_CALIBRATION("점검및교정"),
+    EQUIPMENT_CHECK("장비점검"),
+    DATA_ABNORMAL("자료이상"),
+    COMMUNICATION_FAILURE("통신장애")
 }
 
 /**

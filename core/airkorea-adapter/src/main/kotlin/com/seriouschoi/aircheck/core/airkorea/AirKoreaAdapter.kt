@@ -160,7 +160,7 @@ internal data class AirKoreaItem(
 // ── 변환 유틸 ──────────────────────────────────────────────────────────────
 
 private fun String.toMeasurementFlag(): MeasurementFlag? =
-    MeasurementFlag.entries.firstOrNull { it.name == this }
+    MeasurementFlag.entries.firstOrNull { it.apiValue == this }
 
 // ── Adapter 구현 ───────────────────────────────────────────────────────────
 
