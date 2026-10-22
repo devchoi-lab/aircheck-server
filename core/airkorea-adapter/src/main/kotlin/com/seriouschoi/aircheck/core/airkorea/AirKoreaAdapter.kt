@@ -2,6 +2,7 @@ package com.seriouschoi.aircheck.core.airkorea
 
 import com.seriouschoi.aircheck.core.domain.model.AirQualityResponse
 import com.seriouschoi.aircheck.core.domain.port.AirQualityPort
+import com.seriouschoi.aircheck.core.service.port.ApiUsagePort
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
@@ -70,10 +71,23 @@ data class AirKoreaItem(
     val pm25Flag: String? = null,
 
     // ── 통합지수 ──────────────────────────────────────────────────────────────
-    /** 통합대기환경지수 (0~500) */
+    /**
+     * 통합대기환경수치 (CAI, Comprehensive Air-quality Index)
+     * 모든 오염물질을 종합한 대기질 수치. 예: 75
+     * 등급 범위: 0~50(좋음), 51~100(보통), 101~250(나쁨), 251~(매우나쁨)
+     */
     val khaiValue: String = "-",
-    /** 통합대기환경지수 등급 */
+    /**
+     * 통합대기환경지수 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨)
+     * khaiValue를 등급으로 변환한 값.
+     */
     val khaiGrade: String = "-",
+    /**
+     * 주 오염물질 — 통합지수(CAI)를 결정한 오염물질.
+     * 값 예시: PM-10, PM-2.5, 오존, 이산화질소, 일산화탄소, 아황산가스
+     * 현재 AirKoreaItem에 미매핑 (API 응답엔 존재)
+     */
+    val khaiItem: String = "",
 
     // ── 가스류 ────────────────────────────────────────────────────────────────
     /** 아황산가스 농도 (ppm, ver≥1.5부터 소수점 4자리) */
@@ -111,7 +125,7 @@ data class AirKoreaItem(
 class AirKoreaAdapter(
     @Value("\${airkorea.api-key}") private val apiKey: String,
     private val airKoreaApi: AirKoreaApi,
-    private val apiUsagePort: com.seriouschoi.aircheck.core.service.port.ApiUsagePort?,
+    private val apiUsagePort: ApiUsagePort?,
     private val stationCacheService: StationCacheService
 ) : AirQualityPort {
 
@@ -146,7 +160,7 @@ class AirKoreaAdapter(
         
         // 메인 측정소 (가장 가까운 곳)
         val (mainStation, mainInfo) = nearbyStations.first()
-        val mainData = fetchRawData(mainStation)
+        val mainData: AirKoreaItem? = fetchRawData(mainStation)
         
         // 결과 변수 (기본값: 메인 측정소)
         var pm10: Int? = mainData?.pm10Value?.toIntOrNull()
