@@ -42,72 +42,112 @@ data class AirKoreaItem(
     val stationCode: String = "",
     /** 시도명 (예: "서울", "경기"). API 응답이 아닌 StationInfo에서 채워짐 */
     val sidoName: String = "",
-    /** 측정일시 (yyyy-MM-dd HH:mm) */
+    /**
+     * 측정일시 (yyyy-MM-dd HH:mm, KST 기준)
+     * UTC 변환 필요 시 ZoneId("Asia/Seoul") 사용
+     */
     val dataTime: String = "",
-    /** 측정망 정보 (도시대기/도로변대기/국가배경농도/교외대기/항만). ver≥1.2. 현재 미사용 */
+    /**
+     * 측정망 정보. ver≥1.2. 현재 미사용.
+     * 가능한 값: 도시대기 / 도로변대기 / 국가배경농도 / 교외대기 / 항만 (문서 v1.4 기준 고정)
+     */
     val mangName: String = "",
 
     // ── 미세먼지 ──────────────────────────────────────────────────────────────
-    /** PM10 농도 (㎍/㎥, 1시간값) */
+    /** PM10 농도 (㎍/㎥, 1시간값). 파싱: toIntOrNull() */
     val pm10Value: String = "-",
-    /** PM10 24시간 등급. 현재 AirQualityResponse에 미전달 */
+    /**
+     * PM10 24시간 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨).
+     * 주의: pm10Value(1시간 농도)와 시간 기준이 다름. 현재 AirQualityResponse에 미전달.
+     * 파싱: toIntOrNull()
+     */
     val pm10Grade: String = "-",
-    /** PM10 24시간 예측이동농도 (㎍/㎥). ver≥1.1. 미세먼지 경보 발령 기준값 (#46 연관). 현재 미사용 */
+    /** PM10 24시간 예측이동농도 (㎍/㎥). ver≥1.1. 미세먼지 경보 발령 기준값 (#46 연관). 현재 미사용. 파싱: toIntOrNull() */
     val pm10Value24: String = "-",
-    /** PM10 1시간 등급. ver≥1.3. 현재 미사용 */
+    /**
+     * PM10 1시간 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨). ver≥1.3. 현재 미사용.
+     * pm10Value(1시간 농도)와 시간 기준이 일치하는 등급.
+     * 파싱: toIntOrNull()
+     */
     val pm10Grade1h: String = "-",
-    /** PM10 측정기기 상태 플래그. null이면 정상. 현재 미사용 */
+    /**
+     * PM10 측정기기 상태 플래그. null이면 정상.
+     * 가능한 값: 점검및교정 / 장비점검 / 자료이상 / 통신장애
+     * 값이 있으면 해당 시간대 측정값 신뢰 불가. 현재 미사용.
+     */
     val pm10Flag: String? = null,
 
-    /** PM2.5 농도 (㎍/㎥, 1시간값). ver≥1.0 */
+    /** PM2.5 농도 (㎍/㎥, 1시간값). ver≥1.0. 파싱: toIntOrNull() */
     val pm25Value: String = "-",
-    /** PM2.5 24시간 등급. 현재 AirQualityResponse에 미전달 */
+    /**
+     * PM2.5 24시간 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨).
+     * 주의: pm25Value(1시간 농도)와 시간 기준이 다름. 현재 AirQualityResponse에 미전달.
+     * 파싱: toIntOrNull()
+     */
     val pm25Grade: String = "-",
-    /** PM2.5 24시간 예측이동농도 (㎍/㎥). ver≥1.1. 미세먼지 경보 발령 기준값 (#46 연관). 현재 미사용 */
+    /** PM2.5 24시간 예측이동농도 (㎍/㎥). ver≥1.1. 미세먼지 경보 발령 기준값 (#46 연관). 현재 미사용. 파싱: toIntOrNull() */
     val pm25Value24: String = "-",
-    /** PM2.5 1시간 등급. ver≥1.3. 현재 미사용 */
+    /**
+     * PM2.5 1시간 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨). ver≥1.3. 현재 미사용.
+     * pm25Value(1시간 농도)와 시간 기준이 일치하는 등급.
+     * 파싱: toIntOrNull()
+     */
     val pm25Grade1h: String = "-",
-    /** PM2.5 측정기기 상태 플래그. null이면 정상. 현재 미사용 */
+    /**
+     * PM2.5 측정기기 상태 플래그. null이면 정상.
+     * 가능한 값: 점검및교정 / 장비점검 / 자료이상 / 통신장애
+     * 값이 있으면 해당 시간대 측정값 신뢰 불가. 현재 미사용.
+     */
     val pm25Flag: String? = null,
 
     // ── 통합지수 ──────────────────────────────────────────────────────────────
     /**
-     * 통합대기환경수치 (CAI, Comprehensive Air-quality Index)
-     * 모든 오염물질을 종합한 대기질 수치. 예: 75
+     * 통합대기환경수치 (CAI, Comprehensive Air-quality Index. khai = Korea Haze Air Index)
+     * 모든 오염물질을 종합한 대기질 수치. 예: "75"
      * 등급 범위: 0~50(좋음), 51~100(보통), 101~250(나쁨), 251~(매우나쁨)
+     * 파싱: toIntOrNull()
      */
     val khaiValue: String = "-",
     /**
      * 통합대기환경지수 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨)
-     * khaiValue를 등급으로 변환한 값.
+     * khaiValue를 등급으로 변환한 값. 파싱: toIntOrNull()
      */
     val khaiGrade: String = "-",
 
     // ── 가스류 ────────────────────────────────────────────────────────────────
-    /** 아황산가스 농도 (ppm, ver≥1.5부터 소수점 4자리) */
+    /** 아황산가스 농도 (ppm, ver≥1.5부터 소수점 4자리). 파싱: toDoubleOrNull() */
     val so2Value: String = "-",
-    /** 아황산가스 등급. 현재 AirQualityResponse에 미전달 */
+    /** 아황산가스 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨). 현재 AirQualityResponse에 미전달. 파싱: toIntOrNull() */
     val so2Grade: String = "-",
-    /** 아황산가스 측정기기 상태 플래그. null이면 정상. 현재 미사용 */
+    /**
+     * 아황산가스 측정기기 상태 플래그. null이면 정상.
+     * 가능한 값: 점검및교정 / 장비점검 / 자료이상 / 통신장애. 현재 미사용.
+     */
     val so2Flag: String? = null,
 
-    /** 일산화탄소 농도 (ppm, ver≥1.5부터 소수점 2자리) */
+    /** 일산화탄소 농도 (ppm, ver≥1.5부터 소수점 2자리). 파싱: toDoubleOrNull() */
     val coValue: String = "-",
-    /** 일산화탄소 등급. 현재 AirQualityResponse에 미전달 */
+    /** 일산화탄소 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨). 현재 AirQualityResponse에 미전달. 파싱: toIntOrNull() */
     val coGrade: String = "-",
-    /** 일산화탄소 측정기기 상태 플래그. null이면 정상. 현재 미사용 */
+    /**
+     * 일산화탄소 측정기기 상태 플래그. null이면 정상.
+     * 가능한 값: 점검및교정 / 장비점검 / 자료이상 / 통신장애. 현재 미사용.
+     */
     val coFlag: String? = null,
 
-    /** 오존 농도 (ppm, ver≥1.5부터 소수점 4자리) */
+    /** 오존 농도 (ppm, ver≥1.5부터 소수점 4자리). 파싱: toDoubleOrNull() */
     val o3Value: String = "-",
-    /** 오존 등급. 현재 AirQualityResponse에 미전달 */
+    /** 오존 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨). 현재 AirQualityResponse에 미전달. 파싱: toIntOrNull() */
     val o3Grade: String = "-",
-    /** 오존 측정기기 상태 플래그. null이면 정상. 현재 미사용 */
+    /**
+     * 오존 측정기기 상태 플래그. null이면 정상.
+     * 가능한 값: 점검및교정 / 장비점검 / 자료이상 / 통신장애. 현재 미사용.
+     */
     val o3Flag: String? = null,
 
-    /** 이산화질소 농도 (ppm, ver≥1.5부터 소수점 4자리) */
+    /** 이산화질소 농도 (ppm, ver≥1.5부터 소수점 4자리). 파싱: toDoubleOrNull() */
     val no2Value: String = "-",
-    /** 이산화질소 등급. 현재 AirQualityResponse에 미전달 */
+    /** 이산화질소 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨). 현재 AirQualityResponse에 미전달. 파싱: toIntOrNull() */
     val no2Grade: String = "-",
     /** 이산화질소 측정기기 상태 플래그. null이면 정상. 현재 미사용 */
     val no2Flag: String? = null
