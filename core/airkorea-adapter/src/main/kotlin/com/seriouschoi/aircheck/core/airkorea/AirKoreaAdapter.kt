@@ -159,8 +159,8 @@ internal data class AirKoreaItem(
 
 // ── 변환 유틸 ──────────────────────────────────────────────────────────────
 
-private fun String.toMeasurementFlag(): MeasurementFlag? =
-    MeasurementFlag.entries.firstOrNull { it.apiValue == this }
+private fun String?.toMeasurementFlag(): MeasurementFlag =
+    MeasurementFlag.entries.firstOrNull { it.apiValue == (this ?: "") } ?: MeasurementFlag.NORMAL
 
 // ── Adapter 구현 ───────────────────────────────────────────────────────────
 
@@ -256,27 +256,27 @@ class AirKoreaAdapter(
             pm10 = pm10,
             pm10Station = pm10Station,
             pm10GradeAirKorea = mainData?.pm10Grade1h?.toIntOrNull(),
-            pm10Flag = mainData?.pm10Flag?.toMeasurementFlag(),
+            pm10Flag = mainData?.pm10Flag.toMeasurementFlag(),
             pm25 = pm25,
             pm25Station = pm25Station,
             pm25GradeAirKorea = mainData?.pm25Grade1h?.toIntOrNull(),
-            pm25Flag = mainData?.pm25Flag?.toMeasurementFlag(),
+            pm25Flag = mainData?.pm25Flag.toMeasurementFlag(),
             // 통합지수 (메인 측정소)
             khaiValue = mainData?.khaiValue?.toIntOrNull(),
             khaiGrade = mainData?.khaiGrade?.toIntOrNull(),
             // 가스류 (메인 측정소)
             so2 = mainData?.so2Value?.toDoubleOrNull(),
             so2GradeAirKorea = mainData?.so2Grade?.toIntOrNull(),
-            so2Flag = mainData?.so2Flag?.toMeasurementFlag(),
+            so2Flag = mainData?.so2Flag.toMeasurementFlag(),
             co = mainData?.coValue?.toDoubleOrNull(),
             coGradeAirKorea = mainData?.coGrade?.toIntOrNull(),
-            coFlag = mainData?.coFlag?.toMeasurementFlag(),
+            coFlag = mainData?.coFlag.toMeasurementFlag(),
             o3 = mainData?.o3Value?.toDoubleOrNull(),
             o3GradeAirKorea = mainData?.o3Grade?.toIntOrNull(),
-            o3Flag = mainData?.o3Flag?.toMeasurementFlag(),
+            o3Flag = mainData?.o3Flag.toMeasurementFlag(),
             no2 = mainData?.no2Value?.toDoubleOrNull(),
             no2GradeAirKorea = mainData?.no2Grade?.toIntOrNull(),
-            no2Flag = mainData?.no2Flag?.toMeasurementFlag()
+            no2Flag = mainData?.no2Flag.toMeasurementFlag()
         )
     }
     

@@ -5,12 +5,15 @@ import kotlinx.serialization.Serializable
 
 /**
  * 측정기기 상태 플래그.
- * null이면 정상. 값이 있으면 해당 시간대 측정값 신뢰 불가.
+ * API에서 null로 내려오면 NORMAL. 값이 있으면 해당 시간대 측정값 신뢰 불가.
  *
- * @param apiValue 에어코리아 API에서 내려오는 한글 문자열
+ * @param apiValue 에어코리아 API에서 내려오는 한글 문자열. NORMAL은 API가 null을 반환하는 정상 상태.
  */
 @Schema(description = "측정기기 상태 플래그")
 enum class MeasurementFlag(val apiValue: String) {
+    @Schema(description = "정상")
+    NORMAL(""),
+
     @Schema(description = "점검및교정")
     INSPECTION_AND_CALIBRATION("점검및교정"),
 
@@ -56,8 +59,8 @@ data class AirQualityResponse(
     @Schema(description = "PM10 에어코리아 1시간 등급 (1:좋음/2:보통/3:나쁨/4:매우나쁨)", example = "2")
     val pm10GradeAirKorea: Int? = null,
 
-    @Schema(description = "PM10 측정기기 상태 플래그. null=정상")
-    val pm10Flag: MeasurementFlag? = null,
+    @Schema(description = "PM10 측정기기 상태 플래그")
+    val pm10Flag: MeasurementFlag = MeasurementFlag.NORMAL,
 
     @Schema(description = "초미세먼지(PM2.5) 밀도 (μg/m³)", example = "23")
     val pm25: Int?,
@@ -68,8 +71,8 @@ data class AirQualityResponse(
     @Schema(description = "PM2.5 에어코리아 1시간 등급 (1:좋음/2:보통/3:나쁨/4:매우나쁨)", example = "2")
     val pm25GradeAirKorea: Int? = null,
 
-    @Schema(description = "PM2.5 측정기기 상태 플래그. null=정상")
-    val pm25Flag: MeasurementFlag? = null,
+    @Schema(description = "PM2.5 측정기기 상태 플래그")
+    val pm25Flag: MeasurementFlag = MeasurementFlag.NORMAL,
 
     // 통합지수
     @Schema(description = "통합대기환경지수 (CAI)", example = "68")
@@ -85,8 +88,8 @@ data class AirQualityResponse(
     @Schema(description = "SO2 에어코리아 등급 (1:좋음/2:보통/3:나쁨/4:매우나쁨)", example = "1")
     val so2GradeAirKorea: Int? = null,
 
-    @Schema(description = "SO2 측정기기 상태 플래그. null=정상")
-    val so2Flag: MeasurementFlag? = null,
+    @Schema(description = "SO2 측정기기 상태 플래그")
+    val so2Flag: MeasurementFlag = MeasurementFlag.NORMAL,
 
     @Schema(description = "일산화탄소 CO (ppm)", example = "0.4")
     val co: Double? = null,
@@ -94,8 +97,8 @@ data class AirQualityResponse(
     @Schema(description = "CO 에어코리아 등급 (1:좋음/2:보통/3:나쁨/4:매우나쁨)", example = "1")
     val coGradeAirKorea: Int? = null,
 
-    @Schema(description = "CO 측정기기 상태 플래그. null=정상")
-    val coFlag: MeasurementFlag? = null,
+    @Schema(description = "CO 측정기기 상태 플래그")
+    val coFlag: MeasurementFlag = MeasurementFlag.NORMAL,
 
     @Schema(description = "오존 O3 (ppm)", example = "0.045")
     val o3: Double? = null,
@@ -103,8 +106,8 @@ data class AirQualityResponse(
     @Schema(description = "O3 에어코리아 등급 (1:좋음/2:보통/3:나쁨/4:매우나쁨)", example = "1")
     val o3GradeAirKorea: Int? = null,
 
-    @Schema(description = "O3 측정기기 상태 플래그. null=정상")
-    val o3Flag: MeasurementFlag? = null,
+    @Schema(description = "O3 측정기기 상태 플래그")
+    val o3Flag: MeasurementFlag = MeasurementFlag.NORMAL,
 
     @Schema(description = "이산화질소 NO2 (ppm)", example = "0.025")
     val no2: Double? = null,
@@ -112,6 +115,6 @@ data class AirQualityResponse(
     @Schema(description = "NO2 에어코리아 등급 (1:좋음/2:보통/3:나쁨/4:매우나쁨)", example = "1")
     val no2GradeAirKorea: Int? = null,
 
-    @Schema(description = "NO2 측정기기 상태 플래그. null=정상")
-    val no2Flag: MeasurementFlag? = null
+    @Schema(description = "NO2 측정기기 상태 플래그")
+    val no2Flag: MeasurementFlag = MeasurementFlag.NORMAL
 )
