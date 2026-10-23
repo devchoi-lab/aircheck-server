@@ -37,17 +37,13 @@ class AirKoreaAdapter(
 
     /**
      * 에어코리아 측정일시(KST, "yyyy-MM-dd HH:mm")를 UTC ISO 8601 문자열로 변환.
-     * 파싱 실패 시 원문 반환.
+     * 파싱 실패 시 예외 발생 — 원문 반환은 잘못된 형식이 정상처럼 내려가므로 허용하지 않음.
      */
-    private fun String.kstToUtcIso(): String = try {
+    private fun String.kstToUtcIso(): String =
         LocalDateTime.parse(this, KST_FORMATTER)
             .atZone(KST)
             .withZoneSameInstant(ZoneOffset.UTC)
             .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-    } catch (e: Exception) {
-        log.warn("dataTime 파싱 실패, 원문 반환: {}", this)
-        this
-    }
 
     /**
      * 가까운 측정소 N개를 거리순으로 반환
