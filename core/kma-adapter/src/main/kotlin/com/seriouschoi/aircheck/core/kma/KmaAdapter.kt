@@ -385,9 +385,7 @@ class KmaAdapter(
             temperature = temperature,
             feelsLike = feelsLike,
             precipitation = precipitation,
-            weatherCode = pty,
             weatherCondition = weatherCondition,
-            cloudCover = 0, // 실황에서는 제공 안 함
             isDay = isDay
         )
     }

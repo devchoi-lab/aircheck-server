@@ -170,9 +170,7 @@ class WeatherServiceTest {
             temperature = 20.0,
             feelsLike = 18.0,
             precipitation = 0.0,
-            weatherCode = 0,
             weatherCondition = WeatherCondition.CLEAR,
-            cloudCover = 10,
             isDay = true
         ),
         hourlyForecast = emptyList()

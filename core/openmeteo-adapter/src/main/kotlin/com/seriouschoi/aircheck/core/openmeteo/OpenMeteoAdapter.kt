@@ -58,6 +58,7 @@ data class OpenMeteoHourly(
  * 활성화: weather.provider=openmeteo
  * ※ matchIfMissing 제거됨 — 환경변수 미설정 시 자동 활성화되지 않음.
  */
+@Deprecated("현재 미사용. KmaAdapter 사용 중. 해외 좌표 지원 필요 시 재검토.")
 @Component
 @ConditionalOnProperty(name = ["weather.provider"], havingValue = "openmeteo")
 class OpenMeteoAdapter(
@@ -103,9 +104,7 @@ class OpenMeteoAdapter(
                     temperature = current.temperature,
                     feelsLike = current.feelsLike,
                     precipitation = current.precipitation,
-                    weatherCode = current.weatherCode,
                     weatherCondition = WeatherCondition.fromWeatherCode(current.weatherCode),
-                    cloudCover = current.cloudCover,
                     isDay = current.isDay == 1
                 ),
                 hourlyForecast = hourly.time.mapIndexed { index, time ->

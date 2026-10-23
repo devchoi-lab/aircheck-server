@@ -20,9 +20,7 @@ data class CurrentWeather(
     val temperature: Double,
     val feelsLike: Double,
     val precipitation: Double,
-    val weatherCode: Int,
     val weatherCondition: WeatherCondition,
-    val cloudCover: Int,
     val isDay: Boolean
 )
 
