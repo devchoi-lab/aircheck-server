@@ -30,3 +30,6 @@ application-local.yml
 
 # Local
 local.properties
+
+# 임시 작업 지시 공간 (커밋하지 않음)
+worknote/

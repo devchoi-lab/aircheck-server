@@ -2,46 +2,11 @@ package com.seriouschoi.aircheck.core.airkorea
 
 import com.seriouschoi.aircheck.core.domain.model.AirQualityResponse
 import com.seriouschoi.aircheck.core.domain.port.AirQualityPort
-import kotlinx.serialization.Serializable
+import com.seriouschoi.aircheck.core.service.port.ApiUsagePort
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-
-// ── 에어코리아 API 응답 모델 ───────────────────────────────────────────────
-
-@Serializable
-data class AirKoreaResponse(val response: AirKoreaBody? = null)
-
-@Serializable
-data class AirKoreaBody(val body: AirKoreaItems? = null)
-
-@Serializable
-data class AirKoreaItems(val items: List<AirKoreaItem> = emptyList())
-
-@Serializable
-data class AirKoreaItem(
-    val stationName: String = "",
-    val sidoName: String = "",
-    val dataTime: String = "",
-    // 미세먼지
-    val pm10Value: String = "-",
-    val pm10Grade: String = "-",
-    val pm25Value: String = "-",
-    val pm25Grade: String = "-",
-    // 통합지수
-    val khaiValue: String = "-",
-    val khaiGrade: String = "-",
-    // 가스류
-    val so2Value: String = "-",    // 아황산가스 (ppm)
-    val so2Grade: String = "-",
-    val coValue: String = "-",     // 일산화탄소 (ppm)
-    val coGrade: String = "-",
-    val o3Value: String = "-",     // 오존 (ppm)
-    val o3Grade: String = "-",
-    val no2Value: String = "-",    // 이산화질소 (ppm)
-    val no2Grade: String = "-"
-)
 
 // ── Adapter 구현 ───────────────────────────────────────────────────────────
 
@@ -49,7 +14,7 @@ data class AirKoreaItem(
 class AirKoreaAdapter(
     @Value("\${airkorea.api-key}") private val apiKey: String,
     private val airKoreaApi: AirKoreaApi,
-    private val apiUsagePort: com.seriouschoi.aircheck.core.service.port.ApiUsagePort?,
+    private val apiUsagePort: ApiUsagePort?,
     private val stationCacheService: StationCacheService
 ) : AirQualityPort {
 
@@ -84,7 +49,7 @@ class AirKoreaAdapter(
         
         // 메인 측정소 (가장 가까운 곳)
         val (mainStation, mainInfo) = nearbyStations.first()
-        val mainData = fetchRawData(mainStation)
+        val mainData: AirKoreaItem? = fetchRawData(mainStation)
         
         // 결과 변수 (기본값: 메인 측정소)
         var pm10: Int? = mainData?.pm10Value?.toIntOrNull()
@@ -133,18 +98,31 @@ class AirKoreaAdapter(
             stationName = mainStation,
             sidoName = mainInfo.sidoName,
             dataTime = dataTime,
+            // 미세먼지 (값 없으면 주변 측정소에서 채움)
             pm10 = pm10,
             pm10Station = pm10Station,
+            pm10GradeAirKorea = mainData?.pm10Grade1h?.toIntOrNull(),
+            pm10Flag = mainData?.pm10Flag.toMeasurementFlag(),
             pm25 = pm25,
             pm25Station = pm25Station,
+            pm25GradeAirKorea = mainData?.pm25Grade1h?.toIntOrNull(),
+            pm25Flag = mainData?.pm25Flag.toMeasurementFlag(),
             // 통합지수 (메인 측정소)
             khaiValue = mainData?.khaiValue?.toIntOrNull(),
             khaiGrade = mainData?.khaiGrade?.toIntOrNull(),
             // 가스류 (메인 측정소)
             so2 = mainData?.so2Value?.toDoubleOrNull(),
+            so2GradeAirKorea = mainData?.so2Grade?.toIntOrNull(),
+            so2Flag = mainData?.so2Flag.toMeasurementFlag(),
             co = mainData?.coValue?.toDoubleOrNull(),
+            coGradeAirKorea = mainData?.coGrade?.toIntOrNull(),
+            coFlag = mainData?.coFlag.toMeasurementFlag(),
             o3 = mainData?.o3Value?.toDoubleOrNull(),
-            no2 = mainData?.no2Value?.toDoubleOrNull()
+            o3GradeAirKorea = mainData?.o3Grade?.toIntOrNull(),
+            o3Flag = mainData?.o3Flag.toMeasurementFlag(),
+            no2 = mainData?.no2Value?.toDoubleOrNull(),
+            no2GradeAirKorea = mainData?.no2Grade?.toIntOrNull(),
+            no2Flag = mainData?.no2Flag.toMeasurementFlag()
         )
     }
     
@@ -162,7 +140,7 @@ class AirKoreaAdapter(
                 pageNo = 1,
                 numOfRows = 1,
                 returnType = "json",
-                ver = "1.0"
+                ver = "1.5"
             )
 
             val parsed = json.decodeFromString<AirKoreaResponse>(response)
