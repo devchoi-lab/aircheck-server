@@ -51,11 +51,15 @@ data class OpenMeteoHourly(
 
 /**
  * Open-Meteo API Adapter
- * 
- * 활성화: weather.provider=openmeteo (기본값)
+ *
+ * 현재 미사용 — 서비스는 KmaAdapter(weather.provider=kma) 기준으로 운영.
+ * 해외 좌표 지원 등 필요 시 weather.provider=openmeteo 로 전환.
+ *
+ * 활성화: weather.provider=openmeteo
+ * ※ matchIfMissing 제거됨 — 환경변수 미설정 시 자동 활성화되지 않음.
  */
 @Component
-@ConditionalOnProperty(name = ["weather.provider"], havingValue = "openmeteo", matchIfMissing = true)
+@ConditionalOnProperty(name = ["weather.provider"], havingValue = "openmeteo")
 class OpenMeteoAdapter(
     private val apiUsagePort: com.seriouschoi.aircheck.core.service.port.ApiUsagePort?
 ) : WeatherPort {
