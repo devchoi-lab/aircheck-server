@@ -9,10 +9,18 @@ import kotlinx.serialization.Serializable
  *
  * @param apiValue 에어코리아 API에서 내려오는 한글 문자열
  */
+@Schema(description = "측정기기 상태 플래그")
 enum class MeasurementFlag(val apiValue: String) {
+    @Schema(description = "점검및교정")
     INSPECTION_AND_CALIBRATION("점검및교정"),
+
+    @Schema(description = "장비점검")
     EQUIPMENT_CHECK("장비점검"),
+
+    @Schema(description = "자료이상")
     DATA_ABNORMAL("자료이상"),
+
+    @Schema(description = "통신장애")
     COMMUNICATION_FAILURE("통신장애")
 }
 
