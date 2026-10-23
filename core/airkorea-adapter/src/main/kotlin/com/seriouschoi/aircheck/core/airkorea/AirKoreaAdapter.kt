@@ -294,7 +294,7 @@ class AirKoreaAdapter(
                 pageNo = 1,
                 numOfRows = 1,
                 returnType = "json",
-                ver = "1.0"
+                ver = "1.5"
             )
 
             val parsed = json.decodeFromString<AirKoreaResponse>(response)
