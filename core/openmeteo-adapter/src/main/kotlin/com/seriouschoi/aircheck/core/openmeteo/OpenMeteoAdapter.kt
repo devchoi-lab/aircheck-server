@@ -1,23 +1,11 @@
 package com.seriouschoi.aircheck.core.openmeteo
 
-import com.seriouschoi.aircheck.core.domain.model.CurrentWeather
-import com.seriouschoi.aircheck.core.domain.model.HourlyForecast
-import com.seriouschoi.aircheck.core.domain.model.WeatherCondition
 import com.seriouschoi.aircheck.core.domain.model.WeatherResponse
 import com.seriouschoi.aircheck.core.domain.port.WeatherPort
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import java.util.concurrent.TimeUnit
 
 // ── Open-Meteo API 응답 모델 ───────────────────────────────────────────────
 
@@ -61,85 +49,11 @@ data class OpenMeteoHourly(
 @Deprecated("현재 미사용. KmaAdapter 사용 중. 해외 좌표 지원 필요 시 재검토.")
 @Component
 @ConditionalOnProperty(name = ["weather.provider"], havingValue = "openmeteo")
-class OpenMeteoAdapter(
-    private val apiUsagePort: com.seriouschoi.aircheck.core.service.port.ApiUsagePort?
-) : WeatherPort {
-    
-    private val log = LoggerFactory.getLogger(javaClass)
-    
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .build()
-    
-    private val json = Json { ignoreUnknownKeys = true }
-    
-    companion object {
-        private const val API_TYPE = "OPEN_METEO"
-    }
+class OpenMeteoAdapter : WeatherPort {
 
     override fun getWeather(lat: Double, lng: Double): WeatherResponse? {
         throw UnsupportedOperationException(
             "OpenMeteoAdapter는 현재 미구현 상태입니다. weather.provider=kma 로 설정하세요."
         )
-        val url = "https://api.open-meteo.com/v1/forecast" +
-                "?latitude=$lat&longitude=$lng" +
-                "&current=temperature_2m,apparent_temperature,precipitation,weathercode,cloudcover,is_day" +
-                "&hourly=temperature_2m,apparent_temperature,precipitation_probability,snowfall,weathercode" +
-                "&forecast_hours=48" +
-                "&timezone=auto"
-        
-        val startTime = System.currentTimeMillis()
-        
-        return try {
-            val response = get(url)
-            val parsed = json.decodeFromString<OpenMeteoResponse>(response)
-            
-            val current = parsed.current ?: return null
-            val hourly = parsed.hourly ?: return null
-            
-            // API 호출 성공 기록
-            val responseTime = System.currentTimeMillis() - startTime
-            apiUsagePort?.recordSuccess(API_TYPE, responseTime)
-            
-            WeatherResponse(
-                current = CurrentWeather(
-                    temperature = current.temperature,
-                    feelsLike = current.feelsLike,
-                    precipitation = current.precipitation,
-                    humidity = 0,
-                    windSpeed = 0.0,
-                    windDirection = 0,
-                    weatherCondition = WeatherCondition.fromWeatherCode(current.weatherCode),
-                    isDay = current.isDay == 1
-                ),
-                hourlyForecast = hourly.time.mapIndexed { index, time ->
-                    val dateTime = LocalDateTime.parse(time, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-                    // Open-Meteo는 UTC 반환 (기본 설정)
-                    val utcInstant = dateTime.toInstant(ZoneOffset.UTC)
-                    HourlyForecast(
-                        time = utcInstant,
-                        hour = dateTime.hour,  // UTC 시간
-                        temperature = hourly.temperature.getOrElse(index) { 0.0 },
-                        feelsLike = hourly.feelsLike.getOrElse(index) { 0.0 },
-                        precipitationProbability = hourly.precipitationProbability.getOrElse(index) { 0 },
-                        snowfall = hourly.snowfall.getOrElse(index) { 0.0 },
-                        weatherCode = hourly.weatherCode.getOrElse(index) { 0 },
-                        weatherCondition = WeatherCondition.fromWeatherCode(
-                            hourly.weatherCode.getOrElse(index) { 0 }
-                        )
-                    )
-                }
-            )
-        } catch (e: Exception) {
-            log.error("Open-Meteo API 호출 실패: ${e.message}")
-            apiUsagePort?.recordFailure(API_TYPE, e.message)
-            null
-        }
-    }
-    
-    private fun get(url: String): String {
-        val request = Request.Builder().url(url).build()
-        return client.newCall(request).execute().use { it.body?.string() ?: "" }
     }
 }
