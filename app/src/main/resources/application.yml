@@ -31,7 +31,7 @@ spring:
 # weather.provider 값에 따라 WeatherPort 구현체가 결정됨 (스프링 빈 조건부 활성화).
 # - kma      : KmaAdapter 활성화. 기상청 공공데이터포털 API 사용 (AIRKOREA_API_KEY 필요).
 # - openmeteo: OpenMeteoAdapter 활성화. 무료 Open-Meteo API 사용 (키 불필요).
-# - 그 외 값 또는 환경변수 미설정: OpenMeteoAdapter가 폴백으로 활성화됨 (matchIfMissing = true).
+# - 그 외 값 또는 환경변수 미설정: 기본값 kma 적용 (WEATHER_PROVIDER 미설정 시 KmaAdapter 활성화).
 weather:
   provider: ${WEATHER_PROVIDER:kma}
 
