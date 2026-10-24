@@ -28,8 +28,12 @@ spring:
       spec: maximumSize=1000,expireAfterWrite=10m
 
 # 날씨 API 설정
+# weather.provider 값에 따라 WeatherPort 구현체가 결정됨 (스프링 빈 조건부 활성화).
+# - kma      : KmaAdapter 활성화. 기상청 공공데이터포털 API 사용 (AIRKOREA_API_KEY 필요).
+# - openmeteo: OpenMeteoAdapter 활성화. 무료 Open-Meteo API 사용 (키 불필요).
+# - 그 외 값 또는 환경변수 미설정: OpenMeteoAdapter가 폴백으로 활성화됨 (matchIfMissing = true).
 weather:
-  provider: ${WEATHER_PROVIDER:openmeteo}  # openmeteo 또는 kma
+  provider: ${WEATHER_PROVIDER:kma}
 
 # 에어코리아 API
 airkorea:

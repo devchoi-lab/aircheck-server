@@ -51,11 +51,16 @@ data class OpenMeteoHourly(
 
 /**
  * Open-Meteo API Adapter
- * 
- * 활성화: weather.provider=openmeteo (기본값)
+ *
+ * 현재 미사용 — 서비스는 KmaAdapter(weather.provider=kma) 기준으로 운영.
+ * 해외 좌표 지원 등 필요 시 weather.provider=openmeteo 로 전환.
+ *
+ * 활성화: weather.provider=openmeteo
+ * ※ matchIfMissing 제거됨 — 환경변수 미설정 시 자동 활성화되지 않음.
  */
+@Deprecated("현재 미사용. KmaAdapter 사용 중. 해외 좌표 지원 필요 시 재검토.")
 @Component
-@ConditionalOnProperty(name = ["weather.provider"], havingValue = "openmeteo", matchIfMissing = true)
+@ConditionalOnProperty(name = ["weather.provider"], havingValue = "openmeteo")
 class OpenMeteoAdapter(
     private val apiUsagePort: com.seriouschoi.aircheck.core.service.port.ApiUsagePort?
 ) : WeatherPort {
@@ -74,6 +79,9 @@ class OpenMeteoAdapter(
     }
 
     override fun getWeather(lat: Double, lng: Double): WeatherResponse? {
+        throw UnsupportedOperationException(
+            "OpenMeteoAdapter는 현재 미구현 상태입니다. weather.provider=kma 로 설정하세요."
+        )
         val url = "https://api.open-meteo.com/v1/forecast" +
                 "?latitude=$lat&longitude=$lng" +
                 "&current=temperature_2m,apparent_temperature,precipitation,weathercode,cloudcover,is_day" +
@@ -99,9 +107,10 @@ class OpenMeteoAdapter(
                     temperature = current.temperature,
                     feelsLike = current.feelsLike,
                     precipitation = current.precipitation,
-                    weatherCode = current.weatherCode,
+                    humidity = 0,
+                    windSpeed = 0.0,
+                    windDirection = 0,
                     weatherCondition = WeatherCondition.fromWeatherCode(current.weatherCode),
-                    cloudCover = current.cloudCover,
                     isDay = current.isDay == 1
                 ),
                 hourlyForecast = hourly.time.mapIndexed { index, time ->

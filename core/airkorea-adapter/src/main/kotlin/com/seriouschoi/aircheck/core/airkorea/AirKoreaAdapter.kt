@@ -7,6 +7,10 @@ import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 // ── Adapter 구현 ───────────────────────────────────────────────────────────
 
@@ -22,12 +26,24 @@ class AirKoreaAdapter(
 
     companion object {
         private const val API_TYPE = "AIR_KOREA"
+        private val KST = ZoneId.of("Asia/Seoul")
+        private val KST_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
     }
 
     private val json = Json {
         ignoreUnknownKeys = true 
         coerceInputValues = true
     }
+
+    /**
+     * 에어코리아 측정일시(KST, "yyyy-MM-dd HH:mm")를 UTC ISO 8601 문자열로 변환.
+     * 파싱 실패 시 예외 발생 — 원문 반환은 잘못된 형식이 정상처럼 내려가므로 허용하지 않음.
+     */
+    private fun String.kstToUtcIso(): String =
+        LocalDateTime.parse(this, KST_FORMATTER)
+            .atZone(KST)
+            .withZoneSameInstant(ZoneOffset.UTC)
+            .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
     /**
      * 가까운 측정소 N개를 거리순으로 반환
@@ -97,7 +113,7 @@ class AirKoreaAdapter(
         return AirQualityResponse(
             stationName = mainStation,
             sidoName = mainInfo.sidoName,
-            dataTime = dataTime,
+            dataTime = dataTime.kstToUtcIso(),
             // 미세먼지 (값 없으면 주변 측정소에서 채움)
             pm10 = pm10,
             pm10Station = pm10Station,
