@@ -1,6 +1,7 @@
 package com.seriouschoi.aircheck.core.domain.model
 
 import com.seriouschoi.aircheck.core.domain.serializer.InstantSerializer
+import io.swagger.v3.oas.annotations.media.Schema
 import kotlinx.serialization.Serializable
 import java.time.Instant
 
@@ -15,12 +16,24 @@ data class WeatherResponse(
     val midTermForecast: List<MidTermForecast> = emptyList()
 )
 
+@Schema(description = "현재 날씨")
 @Serializable
 data class CurrentWeather(
+    @Schema(description = "기온 (℃)", example = "20.7")
     val temperature: Double,
+    @Schema(description = "체감온도 (℃). 서버 계산값 — 기온 ≤10℃+풍속 ≥1.3m/s: Wind Chill, 기온 ≥27℃: Heat Index", example = "18.5")
     val feelsLike: Double,
+    @Schema(description = "1시간 강수량 (mm). 강수 없으면 0.0", example = "0.0")
     val precipitation: Double,
+    @Schema(description = "습도 (%)", example = "49")
+    val humidity: Int,
+    @Schema(description = "풍속 (m/s)", example = "1.8")
+    val windSpeed: Double,
+    @Schema(description = "풍향 (deg, 0~360). 16방위 변환: (deg + 11.25) / 22.5 → 정수 인덱스", example = "158")
+    val windDirection: Int,
+    @Schema(description = "날씨 상태. 초단기실황 특성상 PTY=0이면 항상 CLEAR (SKY 미제공)")
     val weatherCondition: WeatherCondition,
+    @Schema(description = "낮 여부. KST 기준 6~18시이면 true", example = "true")
     val isDay: Boolean
 )
 

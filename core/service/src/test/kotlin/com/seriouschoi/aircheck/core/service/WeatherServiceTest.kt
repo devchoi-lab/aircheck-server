@@ -170,6 +170,9 @@ class WeatherServiceTest {
             temperature = 20.0,
             feelsLike = 18.0,
             precipitation = 0.0,
+            humidity = 50,
+            windSpeed = 1.5,
+            windDirection = 180,
             weatherCondition = WeatherCondition.CLEAR,
             isDay = true
         ),

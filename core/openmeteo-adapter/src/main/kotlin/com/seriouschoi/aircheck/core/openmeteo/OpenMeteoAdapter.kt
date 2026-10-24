@@ -79,6 +79,9 @@ class OpenMeteoAdapter(
     }
 
     override fun getWeather(lat: Double, lng: Double): WeatherResponse? {
+        throw UnsupportedOperationException(
+            "OpenMeteoAdapter는 현재 미구현 상태입니다. weather.provider=kma 로 설정하세요."
+        )
         val url = "https://api.open-meteo.com/v1/forecast" +
                 "?latitude=$lat&longitude=$lng" +
                 "&current=temperature_2m,apparent_temperature,precipitation,weathercode,cloudcover,is_day" +
@@ -104,6 +107,9 @@ class OpenMeteoAdapter(
                     temperature = current.temperature,
                     feelsLike = current.feelsLike,
                     precipitation = current.precipitation,
+                    humidity = 0,
+                    windSpeed = 0.0,
+                    windDirection = 0,
                     weatherCondition = WeatherCondition.fromWeatherCode(current.weatherCode),
                     isDay = current.isDay == 1
                 ),

@@ -359,32 +359,37 @@ class KmaAdapter(
         var humidity = 0
         var precipitation = 0.0
         var windSpeed = 0.0
+        var windDirection = 0
         var pty = 0  // 강수형태
-        
+
         items.forEach { item ->
             when (item.category) {
                 "T1H" -> temperature = item.obsrValue.toDoubleOrNull() ?: 0.0
                 "REH" -> humidity = item.obsrValue.toIntOrNull() ?: 0
                 "RN1" -> precipitation = item.obsrValue.toDoubleOrNull() ?: 0.0
                 "WSD" -> windSpeed = item.obsrValue.toDoubleOrNull() ?: 0.0
+                "VEC" -> windDirection = item.obsrValue.toIntOrNull() ?: 0
                 "PTY" -> pty = item.obsrValue.toIntOrNull() ?: 0
             }
         }
-        
+
         // 체감온도 계산 (간단한 공식)
         val feelsLike = calculateFeelsLike(temperature, windSpeed, humidity)
-        
+
         // 현재 시간 기준 낮/밤 판단 (KST 기준)
         val hour = java.time.ZonedDateTime.now(KST).hour
         val isDay = hour in 6..18
-        
+
         // 날씨 상태 변환
         val weatherCondition = convertToWeatherCondition(pty = pty, sky = 1) // 실황은 SKY 없음
-        
+
         return CurrentWeather(
             temperature = temperature,
             feelsLike = feelsLike,
             precipitation = precipitation,
+            humidity = humidity,
+            windSpeed = windSpeed,
+            windDirection = windDirection,
             weatherCondition = weatherCondition,
             isDay = isDay
         )
