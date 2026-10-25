@@ -97,7 +97,7 @@ class AirKoreaAdapter(
         return AirQualityResponse(
             stationName = mainStation,
             sidoName = mainInfo.sidoName,
-            dataTime = dataTime,
+            dataTime = dataTime.kstToUtcIso(),
             // 미세먼지 (값 없으면 주변 측정소에서 채움)
             pm10 = pm10,
             pm10Station = pm10Station,

@@ -46,7 +46,7 @@ data class AirQualityResponse(
     @Schema(description = "시도명", example = "서울")
     val sidoName: String,
 
-    @Schema(description = "측정 시간", example = "2024-03-17 21:00")
+    @Schema(description = "측정 시간 (UTC, ISO 8601)", example = "2024-03-17T12:00:00Z")
     val dataTime: String,
 
     // 미세먼지
