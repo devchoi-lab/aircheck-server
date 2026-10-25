@@ -52,7 +52,7 @@ data class FcstItem(
 )
 
 /**
- * 초단기실황 아이템 — 예보 구역 대표 AWS 관측값 1건.
+ * 초단기실황 아이템 — 예보 구역 대표 AWS(자동기상관측장비) 관측값 1건.
  *
  * API 응답은 category별로 item이 1개씩 반환됨 (totalCount=8 고정).
  * category + obsrValue 쌍으로 사용.
