@@ -1,6 +1,6 @@
 package com.seriouschoi.aircheck.scheduler
 
-import com.seriouschoi.aircheck.core.service.port.ApiUsagePort
+import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component

@@ -8,7 +8,7 @@ import com.seriouschoi.aircheck.core.domain.model.WeatherCondition
 import com.seriouschoi.aircheck.core.domain.model.WeatherResponse
 import com.seriouschoi.aircheck.core.domain.port.ServiceConfigPort
 import com.seriouschoi.aircheck.core.domain.port.WeatherPort
-import com.seriouschoi.aircheck.core.service.port.ApiUsagePort
+import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
 import com.seriouschoi.aircheck.core.kma.dto.FcstItem
 import com.seriouschoi.aircheck.core.kma.dto.KmaApiResponse
 import com.seriouschoi.aircheck.core.kma.dto.MidLandFcstItem

@@ -2,7 +2,7 @@ package com.seriouschoi.aircheck.core.airkorea
 
 import com.seriouschoi.aircheck.core.domain.model.AirQualityResponse
 import com.seriouschoi.aircheck.core.domain.port.AirQualityPort
-import com.seriouschoi.aircheck.core.service.port.ApiUsagePort
+import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
