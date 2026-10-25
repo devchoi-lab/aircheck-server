@@ -1,11 +1,11 @@
 package com.seriouschoi.aircheck.feature.admin
 
 import com.seriouschoi.aircheck.core.domain.model.ServiceVersion
-import com.seriouschoi.aircheck.core.service.ServiceConfigService
-import com.seriouschoi.aircheck.core.service.ServiceVersionService
 import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
 import com.seriouschoi.aircheck.core.domain.port.ApiUsageStats
 import com.seriouschoi.aircheck.core.domain.port.HourlyStats
+import com.seriouschoi.aircheck.core.domain.port.ServiceConfigUseCase
+import com.seriouschoi.aircheck.core.domain.port.ServiceVersionUseCase
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.CacheManager
 import org.springframework.format.annotation.DateTimeFormat
@@ -18,8 +18,8 @@ import java.time.LocalDate
 @RequestMapping("/admin")
 class AdminController(
     private val apiUsagePort: ApiUsagePort,
-    private val serviceVersionService: ServiceVersionService,
-    private val serviceConfigService: ServiceConfigService,
+    private val serviceVersionUseCase: ServiceVersionUseCase,
+    private val serviceConfigUseCase: ServiceConfigUseCase,
     private val cacheManager: CacheManager,
     @Value("\${admin.api-key}") private val adminApiKey: String
 ) {
@@ -124,7 +124,7 @@ class AdminController(
         @PathVariable osType: String
     ): ServiceVersion? {
         validateApiKey(apiKey)
-        return serviceVersionService.getServiceVersion(osType)
+        return serviceVersionUseCase.getServiceVersion(osType)
     }
     
     /**
@@ -136,7 +136,7 @@ class AdminController(
         @RequestBody request: ServiceVersionRequest
     ): ServiceVersion {
         validateApiKey(apiKey)
-        return serviceVersionService.updateServiceVersion(
+        return serviceVersionUseCase.updateServiceVersion(
             osType = request.osType,
             minVersionCode = request.minVersionCode,
             updateUrl = request.updateUrl
@@ -156,7 +156,7 @@ class AdminController(
     ): AppCheckStatusResponse {
         validateApiKey(apiKey)
         return AppCheckStatusResponse(
-            enabled = serviceConfigService.isAppCheckEnabled()
+            enabled = serviceConfigUseCase.isAppCheckEnabled()
         )
     }
     
@@ -169,7 +169,7 @@ class AdminController(
         @RequestBody request: AppCheckToggleRequest
     ): AppCheckStatusResponse {
         validateApiKey(apiKey)
-        serviceConfigService.setAppCheckEnabled(request.enabled)
+        serviceConfigUseCase.setAppCheckEnabled(request.enabled)
         return AppCheckStatusResponse(enabled = request.enabled)
     }
     
@@ -186,7 +186,7 @@ class AdminController(
     ): KmaParallelResponse {
         validateApiKey(apiKey)
         return KmaParallelResponse(
-            parallel = serviceConfigService.isKmaParallelEnabled()
+            parallel = serviceConfigUseCase.isKmaParallelEnabled()
         )
     }
     
@@ -199,7 +199,7 @@ class AdminController(
         @RequestBody request: KmaParallelRequest
     ): KmaParallelResponse {
         validateApiKey(apiKey)
-        serviceConfigService.setKmaParallelEnabled(request.parallel)
+        serviceConfigUseCase.setKmaParallelEnabled(request.parallel)
         return KmaParallelResponse(parallel = request.parallel)
     }
     

@@ -5,8 +5,7 @@ plugins {
 
 dependencies {
     implementation(project(":core:domain"))
-    implementation(project(":core:service"))
-    
+
     // Spring Web (Controller)
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
