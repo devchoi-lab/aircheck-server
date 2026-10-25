@@ -97,25 +97,71 @@ interface KmaApi {
     ): String
 }
 
+/**
+ * 기상청 중기예보 조회서비스
+ * 참고: https://www.data.go.kr/data/15059468/openapi.do
+ */
 interface KmaMidApi {
 
+    /**
+     * 중기육상예보조회 — 3~10일 날씨(하늘상태·강수형태) 및 강수확률 예보
+     *
+     * 발표 주기: 하루 2회 — 06:00, 18:00 (tmFc 기준)
+     * 응답 항목: rnSt3Am~rnSt10(강수확률 %), wf3Am~wf10(날씨 설명 문자열)
+     *   - 3~7일: 오전(Am)/오후(Pm) 구분 제공
+     *   - 8~10일: 오전/오후 구분 없이 1개 값 제공
+     */
     @GetExchange("/getMidLandFcst")
     fun getMidLandFcst(
+        /** 공공데이터포털 발급 인증키 (URL Encode) */
         @RequestParam("serviceKey") serviceKey: String,
+        /** 페이지 번호. Default: 1 */
         @RequestParam("pageNo") pageNo: Int,
+        /** 한 페이지 결과 수. Default: 10 */
         @RequestParam("numOfRows") numOfRows: Int,
+        /** 응답자료형식. XML 또는 JSON. Default: XML */
         @RequestParam("dataType") dataType: String,
+        /**
+         * 예보구역코드.
+         * 예: 11B00000(서울·인천·경기), 11D10000(강원영서), 11F20000(경남)
+         * 전체 코드 목록: 공공데이터포털 활용가이드 참조
+         */
         @RequestParam("regId") regId: String,
+        /**
+         * 발표시각 (yyyyMMddHH00, KST). 하루 2회 고정: 0600, 1800
+         * 예: 202410230600 (2024-10-23 06:00 발표)
+         * 계산: [KmaAdapter.calculateMidFcstTmFc] 참조
+         */
         @RequestParam("tmFc") tmFc: String
     ): String
 
+    /**
+     * 중기기온예보조회 — 3~10일 최저·최고기온 예보
+     *
+     * 발표 주기: 하루 2회 — 06:00, 18:00 (tmFc 기준)
+     * 응답 항목: taMin3~taMin10(최저기온 ℃), taMax3~taMax10(최고기온 ℃)
+     */
     @GetExchange("/getMidTa")
     fun getMidTa(
+        /** 공공데이터포털 발급 인증키 (URL Encode) */
         @RequestParam("serviceKey") serviceKey: String,
+        /** 페이지 번호. Default: 1 */
         @RequestParam("pageNo") pageNo: Int,
+        /** 한 페이지 결과 수. Default: 10 */
         @RequestParam("numOfRows") numOfRows: Int,
+        /** 응답자료형식. XML 또는 JSON. Default: XML */
         @RequestParam("dataType") dataType: String,
+        /**
+         * 예보구역코드 (기온 기준). getMidLandFcst와 코드 체계가 다름.
+         * 예: 11B10101(서울), 11B20201(인천), 11H10501(부산)
+         * 전체 코드 목록: 공공데이터포털 활용가이드 참조
+         */
         @RequestParam("regId") regId: String,
+        /**
+         * 발표시각 (yyyyMMddHH00, KST). 하루 2회 고정: 0600, 1800
+         * 예: 202410230600 (2024-10-23 06:00 발표)
+         * 계산: [KmaAdapter.calculateMidFcstTmFc] 참조
+         */
         @RequestParam("tmFc") tmFc: String
     ): String
 }
