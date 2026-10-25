@@ -1,8 +1,8 @@
 package com.seriouschoi.aircheck.core.persistence
 
-import com.seriouschoi.aircheck.core.service.port.ApiUsagePort
-import com.seriouschoi.aircheck.core.service.port.ApiUsageStats
-import com.seriouschoi.aircheck.core.service.port.HourlyStats
+import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
+import com.seriouschoi.aircheck.core.domain.port.ApiUsageStats
+import com.seriouschoi.aircheck.core.domain.port.HourlyStats
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate

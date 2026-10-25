@@ -6,8 +6,7 @@ plugins {
 
 dependencies {
     implementation(project(":core:domain"))
-    implementation(project(":core:service"))
-    
+
     // Spring
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-cache")

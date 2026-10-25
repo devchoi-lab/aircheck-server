@@ -3,8 +3,9 @@ package com.seriouschoi.aircheck.feature.admin
 import com.seriouschoi.aircheck.core.domain.model.ServiceVersion
 import com.seriouschoi.aircheck.core.service.ServiceConfigService
 import com.seriouschoi.aircheck.core.service.ServiceVersionService
-import com.seriouschoi.aircheck.core.service.port.ApiUsagePort
-import com.seriouschoi.aircheck.core.service.port.ApiUsageStats
+import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
+import com.seriouschoi.aircheck.core.domain.port.ApiUsageStats
+import com.seriouschoi.aircheck.core.domain.port.HourlyStats
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.CacheManager
 import org.springframework.format.annotation.DateTimeFormat
@@ -89,7 +90,7 @@ class AdminController(
         @RequestHeader("X-Admin-Key") apiKey: String?,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         date: LocalDate?
-    ): List<com.seriouschoi.aircheck.core.service.port.HourlyStats> {
+    ): List<HourlyStats> {
         validateApiKey(apiKey)
         return apiUsagePort.getHourlyStats(date ?: LocalDate.now())
     }

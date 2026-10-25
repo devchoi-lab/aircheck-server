@@ -1,8 +1,8 @@
 package com.seriouschoi.aircheck.feature.admin
 
-import com.seriouschoi.aircheck.core.service.port.ApiUsagePort
-import com.seriouschoi.aircheck.core.service.port.ApiUsageStats
-import com.seriouschoi.aircheck.core.service.port.HourlyStats
+import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
+import com.seriouschoi.aircheck.core.domain.port.ApiUsageStats
+import com.seriouschoi.aircheck.core.domain.port.HourlyStats
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
