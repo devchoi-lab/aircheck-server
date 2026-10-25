@@ -6,8 +6,7 @@ plugins {
 
 dependencies {
     implementation(project(":core:domain"))
-    implementation(project(":core:service"))
-    
+
     // Spring
     implementation("org.springframework:spring-context:6.2.4")
     implementation("org.springframework.boot:spring-boot-autoconfigure")
