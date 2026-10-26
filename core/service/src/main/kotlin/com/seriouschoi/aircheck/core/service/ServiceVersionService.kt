@@ -1,7 +1,7 @@
 package com.seriouschoi.aircheck.core.service
 
 import com.seriouschoi.aircheck.core.domain.model.ServiceVersion
-import com.seriouschoi.aircheck.core.domain.model.VersionCheckResult
+import com.seriouschoi.aircheck.core.domain.port.VersionCheckResult
 import com.seriouschoi.aircheck.core.domain.port.ServiceVersionPort
 import com.seriouschoi.aircheck.core.domain.port.ServiceVersionUseCase
 import org.springframework.stereotype.Service

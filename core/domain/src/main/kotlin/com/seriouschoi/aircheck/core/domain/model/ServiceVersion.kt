@@ -9,8 +9,3 @@ data class ServiceVersion(
         return currentVersionCode < minVersionCode
     }
 }
-
-data class VersionCheckResult(
-    val needUpdate: Boolean,
-    val updateUrl: String?
-)
