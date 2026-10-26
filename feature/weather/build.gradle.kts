@@ -5,9 +5,7 @@ plugins {
 
 dependencies {
     implementation(project(":core:domain"))
-    implementation(project(":core:service"))
-    implementation(project(":core:airkorea-adapter"))
-    
+
     // Spring Web (Controller)
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
