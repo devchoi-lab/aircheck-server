@@ -3,18 +3,19 @@ plugins {
 }
 
 /**
- * CSV 재생성 task
+ * 중기예보 위경도 매핑 CSV 재생성 task
  *
  * 실행: ./gradlew :core:kma-region:generateMidRegionCsv
  *
- * 입력 (worknote/):
- *   - 기상청28_중기예보 조회서비스_오픈API활용가이드_251212/중기예보_중기기온예보구역코드_2025.12.xlsx
- *   - 기상청41_단기예보 조회서비스_오픈API활용가이드_2610/기상청41_단기예보 조회서비스_오픈API활용가이드_격자_위경도(2610).xlsx
+ * 입력 (scripts/):
+ *   - mid-region-codes.csv : 예보구역코드·구역명·특성 (xlsx 업데이트 시 extract_source_csvs.py 재실행)
+ *   - grid-latlon.csv      : 시도·시군구·읍면동·위도·경도
  *
  * 출력:
  *   - src/main/resources/mid-region-latlon.csv
  *
  * 생성 후 결과를 검수하고 커밋할 것.
+ * xlsx 원본이 바뀐 경우: python3 scripts/extract_source_csvs.py 먼저 실행.
  */
 tasks.register<Exec>("generateMidRegionCsv") {
     group = "kma-region"
