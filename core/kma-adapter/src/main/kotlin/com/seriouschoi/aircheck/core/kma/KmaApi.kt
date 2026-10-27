@@ -122,9 +122,12 @@ interface KmaMidApi {
         /** 응답자료형식. XML 또는 JSON. Default: XML */
         @RequestParam("dataType") dataType: String,
         /**
-         * 예보구역코드.
-         * 예: 11B00000(서울·인천·경기), 11D10000(강원영서), 11F20000(경남)
-         * 전체 코드 목록: 공공데이터포털 활용가이드 참조
+         * 예보구역코드 (육상예보 기준). 남한 10개 광역 구역.
+         * 11B00000(서울·인천·경기), 11D10000(강원영서), 11D20000(강원영동),
+         * 11C10000(충청북도), 11C20000(대전·세종·충청남도),
+         * 11F10000(전북자치도), 11F20000(광주·전라남도),
+         * 11H10000(대구·경상북도), 11H20000(부산·울산·경상남도), 11G00000(제주도)
+         * 위경도 → regId 변환: [KmaMidRegionMapper.toLandRegId]
          */
         @RequestParam("regId") regId: String,
         /**
@@ -152,9 +155,10 @@ interface KmaMidApi {
         /** 응답자료형식. XML 또는 JSON. Default: XML */
         @RequestParam("dataType") dataType: String,
         /**
-         * 예보구역코드 (기온 기준). getMidLandFcst와 코드 체계가 다름.
-         * 예: 11B10101(서울), 11B20201(인천), 11H10501(부산)
-         * 전체 코드 목록: 공공데이터포털 활용가이드 참조
+         * 예보구역코드 (기온 기준). getMidLandFcst와 코드 형식은 같지만 사용하는 코드가 다름.
+         * getMidLandFcst는 광역 코드(10개), getMidTa는 도시별 코드(200여개).
+         * 예: 11B10101(서울), 11B20201(인천), 11H20201(부산)
+         * 위경도 → regId 변환: [KmaMidRegionMapper.toTaRegId]
          */
         @RequestParam("regId") regId: String,
         /**

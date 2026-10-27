@@ -55,10 +55,6 @@ class KmaAdapter(
         private const val API_TYPE_NCST = "KMA_ULTRA_SRT_NCST"
         private const val API_TYPE_VILAGE = "KMA_VILAGE_FCST"
         private const val API_TYPE_MID = "KMA_MID_FCST"
-
-        // 중기예보 지역코드 (서울/경기 기준, 추후 확장)
-        private const val DEFAULT_REG_ID = "11B00000"  // 서울/인천/경기
-        private const val DEFAULT_TA_REG_ID = "11B10101"  // 서울
     }
     
     private val json = Json { 
@@ -87,10 +83,10 @@ class KmaAdapter(
             
             if (isParallelEnabled()) {
                 // 병렬 API 호출
-                fetchWeatherParallel(grid, baseDate, baseTime, vilageFcstDate, vilageFcstTime)
+                fetchWeatherParallel(lat, lng, grid, baseDate, baseTime, vilageFcstDate, vilageFcstTime)
             } else {
                 // 순차 API 호출
-                fetchWeatherSequential(grid, baseDate, baseTime, vilageFcstDate, vilageFcstTime)
+                fetchWeatherSequential(lat, lng, grid, baseDate, baseTime, vilageFcstDate, vilageFcstTime)
             }
         } catch (e: Exception) {
             logger.error(e) { "KMA API error: ${e.message}" }
@@ -99,13 +95,14 @@ class KmaAdapter(
     }
     
     private fun fetchWeatherParallel(
+        lat: Double, lng: Double,
         grid: KmaGridConverter.Grid, baseDate: String, baseTime: String,
         vilageFcstDate: String, vilageFcstTime: String
     ): WeatherResponse? {
         return runBlocking(Dispatchers.IO) {
             val currentDeferred = async { fetchCurrentWeather(grid.nx, grid.ny, baseDate, baseTime) }
             val vilageFcstDeferred = async { fetchVilageFcstItems(grid.nx, grid.ny, vilageFcstDate, vilageFcstTime) }
-            val midTermDeferred = async { fetchMidTermForecast() }
+            val midTermDeferred = async { fetchMidTermForecast(lat, lng) }
             
             val currentWeather = currentDeferred.await()
             val vilageFcstItems = vilageFcstDeferred.await()
@@ -116,12 +113,13 @@ class KmaAdapter(
     }
     
     private fun fetchWeatherSequential(
+        lat: Double, lng: Double,
         grid: KmaGridConverter.Grid, baseDate: String, baseTime: String,
         vilageFcstDate: String, vilageFcstTime: String
     ): WeatherResponse? {
         val currentWeather = fetchCurrentWeather(grid.nx, grid.ny, baseDate, baseTime)
         val vilageFcstItems = fetchVilageFcstItems(grid.nx, grid.ny, vilageFcstDate, vilageFcstTime)
-        val midTermForecast = fetchMidTermForecast()
+        val midTermForecast = fetchMidTermForecast(lat, lng)
         
         return buildWeatherResponse(currentWeather, vilageFcstItems, midTermForecast)
     }
@@ -224,17 +222,17 @@ class KmaAdapter(
     /**
      * 중기예보 조회 (3~10일)
      */
-    private fun fetchMidTermForecast(): List<MidTermForecast> {
+    private fun fetchMidTermForecast(lat: Double, lng: Double): List<MidTermForecast> {
         val tmFc = calculateMidFcstTmFc()
         val startTime = System.currentTimeMillis()
-        
+
         return try {
             val landResponse = kmaMidApi.getMidLandFcst(
                 serviceKey = apiKey,
                 pageNo = 1,
                 numOfRows = 10,
                 dataType = "JSON",
-                regId = DEFAULT_REG_ID,
+                regId = KmaMidRegionMapper.toLandRegId(lat, lng),
                 tmFc = tmFc
             )
             val taResponse = kmaMidApi.getMidTa(
@@ -242,7 +240,7 @@ class KmaAdapter(
                 pageNo = 1,
                 numOfRows = 10,
                 dataType = "JSON",
-                regId = DEFAULT_TA_REG_ID,
+                regId = KmaMidRegionMapper.toTaRegId(lat, lng),
                 tmFc = tmFc
             )
 
