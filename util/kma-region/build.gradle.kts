@@ -5,7 +5,7 @@ plugins {
 /**
  * 중기예보 위경도 매핑 CSV 재생성 task
  *
- * 실행: ./gradlew :core:kma-region:generateMidRegionCsv
+ * 실행: ./gradlew :util:kma-region:generateMidRegionCsv
  *
  * 입력 (scripts/):
  *   - mid-region-codes.csv : 예보구역코드·구역명·특성 (xlsx 업데이트 시 extract_source_csvs.py 재실행)

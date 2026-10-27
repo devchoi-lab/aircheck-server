@@ -18,7 +18,8 @@ object KmaMidRegionMapper {
     /**
      * getMidLandFcst용 예보구역코드 반환 — 남한 광역 구역 (A타입).
      *
-     * 범위 밖(북한·해외) 좌표 입력 시 서울·인천·경기(11B00000) 반환.
+     * 범위 밖 좌표는 기하학적으로 가장 가까운 구역으로 매핑됨 (결과가 임의적일 수 있음).
+     * fallback(11B00000)은 CSV 로드 실패 등 극단적 상황에서만 동작.
      */
     fun toLandRegId(lat: Double, lng: Double): String =
         landRegions.minByOrNull { dist(it.lat, it.lng, lat, lng) }?.regId ?: FALLBACK_LAND_REG_ID
@@ -26,7 +27,8 @@ object KmaMidRegionMapper {
     /**
      * getMidTa용 예보구역코드 반환 — 도시별 기온 구역 (C타입).
      *
-     * 범위 밖(북한·해외) 좌표 입력 시 서울(11B10101) 반환.
+     * 범위 밖 좌표는 기하학적으로 가장 가까운 구역으로 매핑됨 (결과가 임의적일 수 있음).
+     * fallback(11B10101)은 CSV 로드 실패 등 극단적 상황에서만 동작.
      */
     fun toTaRegId(lat: Double, lng: Double): String =
         taRegions.minByOrNull { dist(it.lat, it.lng, lat, lng) }?.regId ?: FALLBACK_TA_REG_ID

@@ -14,9 +14,9 @@
     type: A=육상(getMidLandFcst), C=기온(getMidTa)
 
 실행:
-  cd core/kma-region/scripts && python3 generate_mid_region_csv.py
+  cd util/kma-region/scripts && python3 generate_mid_region_csv.py
   또는
-  ./gradlew :core:kma-region:generateMidRegionCsv
+  ./gradlew :util:kma-region:generateMidRegionCsv
 
 매칭 전략 (우선순위 순):
   1. 수동 좌표 (MANUAL_COORDS)
