@@ -89,10 +89,10 @@ def extract_mid_region_codes():
 def extract_grid_latlon():
     print('격자 위경도 xlsx 읽는 중...')
     rows = read_xlsx_rows(GRID_XLSX)
-    # 헤더: 구분,행정구역코드,1단계(시도),2단계(시군구),3단계(읍면동),...,경도(초/100)[13],위도(초/100)[14]
+    # 헤더: 구분,행정구역코드,1단계(시도),2단계(시군구),3단계(읍면동),격자X[5],격자Y[6],...,경도(초/100)[13],위도(초/100)[14]
     with open(GRID_LATLON_CSV, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow(['sido', 'sigungu', 'eupmyeondong', 'lat', 'lng'])
+        writer.writerow(['sido', 'sigungu', 'eupmyeondong', 'nx', 'ny', 'lat', 'lng'])
         count = 0
         for row in rows[1:]:
             while len(row) < 15:
@@ -100,13 +100,15 @@ def extract_grid_latlon():
             sido = row[2]
             sigungu = row[3]
             emd = row[4]
+            nx_str = row[5]
+            ny_str = row[6]
             lng_str = row[13]
             lat_str = row[14]
             if sido and lat_str and lng_str:
                 try:
                     float(lat_str)
                     float(lng_str)
-                    writer.writerow([sido, sigungu, emd, lat_str, lng_str])
+                    writer.writerow([sido, sigungu, emd, nx_str, ny_str, lat_str, lng_str])
                     count += 1
                 except ValueError:
                     pass

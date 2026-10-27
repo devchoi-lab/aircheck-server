@@ -100,8 +100,8 @@ def normalize(name):
 def build_grid_structures(grid_csv):
     """
     grid-latlon.csv → 두 가지 구조 구축
-    exact_index: { normalize(sigungu): [(sido, lat, lng), ...] }  — 읍면동 공백 행
-    all_rows: [(sido, sigungu, emd, lat, lng), ...]
+    exact_index: { normalize(sigungu): [(sido, nx, ny, lat, lng), ...] }  — 읍면동 공백 행
+    all_rows: [(sido, sigungu, emd, nx, ny, lat, lng), ...]
     """
     exact_index = {}
     all_rows = []
@@ -112,29 +112,31 @@ def build_grid_structures(grid_csv):
             sido = row['sido']
             sigungu = row['sigungu']
             emd = row['eupmyeondong']
+            nx = row.get('nx', '')
+            ny = row.get('ny', '')
             try:
                 lat = float(row['lat'])
                 lng = float(row['lng'])
             except ValueError:
                 continue
 
-            all_rows.append((sido, sigungu, emd, lat, lng))
+            all_rows.append((sido, sigungu, emd, nx, ny, lat, lng))
 
             # 시 수준 (sigungu 공백)
             if not sigungu and not emd and sido:
                 key = normalize(sido)
-                exact_index.setdefault(key, []).append((sido, lat, lng))
+                exact_index.setdefault(key, []).append((sido, nx, ny, lat, lng))
 
             # 시군구 수준 (읍면동 공백)
             if sigungu and not emd:
                 key = normalize(sigungu)
-                exact_index.setdefault(key, []).append((sido, lat, lng))
+                exact_index.setdefault(key, []).append((sido, nx, ny, lat, lng))
 
     return exact_index, all_rows
 
 
-def find_latlon(reg_id, name, exact_index, all_rows):
-    """위경도 검색 (3단계 우선순위 매칭)"""
+def find_coords(reg_id, name, exact_index, all_rows):
+    """위경도 + 격자 좌표 검색 (3단계 우선순위 매칭)"""
     prefix = reg_id[:3]
     sido_candidates = PREFIX_TO_SIDO.get(prefix, [])
 
@@ -142,28 +144,27 @@ def find_latlon(reg_id, name, exact_index, all_rows):
     norm = normalize(name)
     candidates = exact_index.get(norm, [])
     if candidates:
-        filtered = [(s, la, lo) for s, la, lo in candidates if not sido_candidates or s in sido_candidates]
-        if filtered:
-            return filtered[0][1], filtered[0][2]
-        return candidates[0][1], candidates[0][2]
+        filtered = [c for c in candidates if not sido_candidates or c[0] in sido_candidates]
+        match = filtered[0] if filtered else candidates[0]
+        return match[3], match[4], match[1], match[2]  # lat, lng, nx, ny
 
     # 2단계: sigungu가 name으로 시작하는 prefix 매칭
-    for sido, sigungu, emd, lat, lng in all_rows:
+    for sido, sigungu, emd, nx, ny, lat, lng in all_rows:
         if not sigungu:
             continue
         if sido_candidates and sido not in sido_candidates:
             continue
         if sigungu.startswith(name) and len(sigungu) > len(name):
-            return lat, lng
+            return lat, lng, nx, ny
 
     # 3단계: sigungu에 name이 포함되는 contains 매칭
-    for sido, sigungu, emd, lat, lng in all_rows:
+    for sido, sigungu, emd, nx, ny, lat, lng in all_rows:
         if not sigungu:
             continue
         if sido_candidates and sido not in sido_candidates:
             continue
         if name in sigungu:
-            return lat, lng
+            return lat, lng, nx, ny
 
     return None
 
@@ -189,10 +190,10 @@ def main():
         if not reg_id:
             continue
 
-        # 수동 좌표 우선
+        # 수동 좌표 우선 (격자 좌표 없음)
         if reg_id in MANUAL_COORDS:
             lat, lng = MANUAL_COORDS[reg_id]
-            output_rows.append([reg_id, name, f'{lat:.7f}', f'{lng:.7f}', typ])
+            output_rows.append([reg_id, name, f'{lat:.7f}', f'{lng:.7f}', '', '', typ])
             continue
 
         # 북한 → 스킵
@@ -203,18 +204,18 @@ def main():
         if typ in ('H', 'I'):
             continue
 
-        result = find_latlon(reg_id, name, exact_index, all_rows)
+        result = find_coords(reg_id, name, exact_index, all_rows)
         if result:
-            lat, lng = result
-            output_rows.append([reg_id, name, f'{lat:.7f}', f'{lng:.7f}', typ])
+            lat, lng, nx, ny = result
+            output_rows.append([reg_id, name, f'{lat:.7f}', f'{lng:.7f}', nx, ny, typ])
         else:
             unmatched.append((reg_id, name, typ))
-            output_rows.append([reg_id, name, 'UNMATCHED', 'UNMATCHED', typ])
+            output_rows.append([reg_id, name, 'UNMATCHED', 'UNMATCHED', '', '', typ])
 
     os.makedirs(os.path.dirname(OUTPUT_CSV), exist_ok=True)
     with open(OUTPUT_CSV, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow(['regId', 'name', 'lat', 'lng', 'type'])
+        writer.writerow(['regId', 'name', 'lat', 'lng', 'nx', 'ny', 'type'])
         writer.writerows(output_rows)
 
     print(f'\n출력: {OUTPUT_CSV}')
