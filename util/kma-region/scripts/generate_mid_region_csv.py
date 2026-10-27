@@ -23,6 +23,7 @@
 import csv
 import json
 import os
+import sys
 import time
 import urllib.parse
 import urllib.request
@@ -31,7 +32,10 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 MID_REGION_CSV = os.path.join(SCRIPT_DIR, 'mid-region-codes.csv')
 OUTPUT_CSV = os.path.normpath(os.path.join(SCRIPT_DIR, '../src/main/resources/mid-region-latlon.csv'))
 
-KAKAO_API_KEY = '366992c357dd822f4c7ee547e6aaa5d7'
+if len(sys.argv) < 2 or not sys.argv[1].strip():
+    sys.exit('사용법: python3 generate_mid_region_csv.py <kakao_api_key>\n'
+             'Gradle: ./gradlew :util:kma-region:generateMidRegionCsv  (local.properties에 kakao.api.key 필요)')
+KAKAO_API_KEY = sys.argv[1].strip()
 
 # query 컬럼이 공백인 항목의 수동 좌표
 MANUAL_COORDS = {
