@@ -5,6 +5,10 @@
 입력 (scripts/ 디렉토리):
   - mid-region-codes.csv : regId, name, type, query
       query 컬럼: Kakao API 호출 쿼리 (상위 행정구역 포함, 동명이지 방지)
+      원본 xlsx(중기예보_중기기온예보구역코드_2025.12.xlsx) 업데이트 시:
+        1. xlsx → CSV 내보내기 (regId, name, type 컬럼)
+        2. 기존 mid-region-codes.csv의 query 컬럼을 새 CSV에 병합
+        3. 신규·변경 항목의 query는 수동으로 채울 것
 
 조회 순서: MANUAL_COORDS → Kakao API
   MANUAL_COORDS에 regId가 있으면 해당 좌표를 사용 (Kakao API 호출 안 함).
