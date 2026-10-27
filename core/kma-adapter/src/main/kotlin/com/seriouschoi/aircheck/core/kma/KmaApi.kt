@@ -123,10 +123,7 @@ interface KmaMidApi {
         @RequestParam("dataType") dataType: String,
         /**
          * 예보구역코드 (육상예보 기준). 남한 10개 광역 구역.
-         * 11B00000(서울·인천·경기), 11D10000(강원영서), 11D20000(강원영동),
-         * 11C10000(충청북도), 11C20000(대전·세종·충청남도),
-         * 11F10000(전북자치도), 11F20000(광주·전라남도),
-         * 11H10000(대구·경상북도), 11H20000(부산·울산·경상남도), 11G00000(제주도)
+         * ex: 11B00000(서울·인천·경기), 11D10000(강원영서), 11D20000(강원영동),
          * 위경도 → regId 변환: [KmaMidRegionMapper.toLandRegId]
          */
         @RequestParam("regId") regId: String,
