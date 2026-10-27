@@ -5,7 +5,10 @@
 입력 (scripts/ 디렉토리):
   - mid-region-codes.csv : regId, name, type, query
       query 컬럼: Kakao API 호출 쿼리 (상위 행정구역 포함, 동명이지 방지)
-      query 공백: MANUAL_COORDS 폴백 (현재 이어도만 해당)
+
+조회 순서: MANUAL_COORDS → Kakao API
+  MANUAL_COORDS에 regId가 있으면 해당 좌표를 사용 (Kakao API 호출 안 함).
+  현재 이어도(11G00601)만 해당 — 수중암초라 Kakao 결과 신뢰 불가.
 
 출력:
   - ../src/main/resources/mid-region-latlon.csv
@@ -37,7 +40,7 @@ if len(sys.argv) < 2 or not sys.argv[1].strip():
              'Gradle: ./gradlew :util:kma-region:generateMidRegionCsv  (local.properties에 kakao.api.key 필요)')
 KAKAO_API_KEY = sys.argv[1].strip()
 
-# query 컬럼이 공백인 항목의 수동 좌표
+# Kakao API보다 우선 적용되는 수동 좌표 (Kakao 결과 신뢰 불가 항목)
 MANUAL_COORDS = {
     '11G00601': (32.1220000, 125.1827000),   # 이어도 (수중암초 — 행정주소 없음)
 }
@@ -95,16 +98,11 @@ def main():
         if typ in ('H', 'I', '0'):
             continue
 
-        # query 없으면 MANUAL_COORDS
-        if not query:
-            if reg_id in MANUAL_COORDS:
-                lat, lng = MANUAL_COORDS[reg_id]
-                output_rows.append([reg_id, name, f'{lat:.7f}', f'{lng:.7f}', typ])
-                print(f'  [MANUAL] {reg_id}  {name}')
-            else:
-                unmatched.append((reg_id, name, typ))
-                output_rows.append([reg_id, name, 'UNMATCHED', 'UNMATCHED', typ])
-                print(f'  [WARN]   {reg_id}  {name}  query 없음')
+        # MANUAL_COORDS 우선 (Kakao API 호출 안 함)
+        if reg_id in MANUAL_COORDS:
+            lat, lng = MANUAL_COORDS[reg_id]
+            output_rows.append([reg_id, name, f'{lat:.7f}', f'{lng:.7f}', typ])
+            print(f'  [MANUAL] {reg_id}  {name}')
             continue
 
         # Kakao API 조회
