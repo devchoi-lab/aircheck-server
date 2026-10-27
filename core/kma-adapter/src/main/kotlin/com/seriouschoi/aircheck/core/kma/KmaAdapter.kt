@@ -1,5 +1,7 @@
 package com.seriouschoi.aircheck.core.kma
 
+import com.seriouschoi.aircheck.core.kma.region.KmaMidRegionMapper
+
 import com.seriouschoi.aircheck.core.domain.model.CurrentWeather
 import com.seriouschoi.aircheck.core.domain.model.DailyForecast
 import com.seriouschoi.aircheck.core.domain.model.HourlyForecast

@@ -140,6 +140,7 @@ interface KmaMidApi {
 
     /**
      * 중기기온예보조회 — 3~10일 최저·최고기온 예보
+     * 기온(Temperature of Air)
      *
      * 발표 주기: 하루 2회 — 06:00, 18:00 (tmFc 기준)
      * 응답 항목: taMin3~taMin10(최저기온 ℃), taMax3~taMax10(최고기온 ℃)
