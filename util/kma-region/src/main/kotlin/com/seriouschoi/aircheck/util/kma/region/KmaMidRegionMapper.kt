@@ -1,4 +1,4 @@
-package com.seriouschoi.aircheck.core.kma.region
+package com.seriouschoi.aircheck.util.kma.region
 
 import kotlin.math.pow
 
@@ -11,7 +11,7 @@ import kotlin.math.pow
  * 좌표 데이터 출처: mid-region-latlon.csv (기상청 공식 문서 기반 생성)
  *   - 예보구역코드·구역명: 중기예보_중기기온예보구역코드_2025.12.xlsx
  *   - 위경도: 기상청41_단기예보 조회서비스_오픈API활용가이드_격자_위경도(2610).xlsx
- *   - CSV 재생성: ./gradlew :core:kma-region:generateMidRegionCsv
+ *   - CSV 재생성: ./gradlew :util:kma-region:generateMidRegionCsv
  */
 object KmaMidRegionMapper {
 
