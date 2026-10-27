@@ -3,9 +3,11 @@
 중기예보 예보구역코드 + 위경도 매핑 CSV 생성 스크립트 (Kakao Geocoding API 기반)
 
 입력 (scripts/ 디렉토리):
-  - mid-region-codes.csv : regId, name, type, query
-      query 컬럼: Kakao API 호출 쿼리 (상위 행정구역 포함, 동명이지 방지)
-      원본 xlsx(중기예보_중기기온예보구역코드_2025.12.xlsx) 업데이트 시:
+  - mid-land-region-codes.csv : regId, name, query  — getMidLandFcst용 (남한 10개 광역)
+      출처: 기상청28_중기예보 조회서비스_오픈API활용가이드_241128 "중기육상예보구역 코드 정보 표"
+  - mid-region-codes.csv : regId, name, type, query  — getMidTa용 (C타입만 처리)
+      출처: 중기예보_중기기온예보구역코드_2025.12.xlsx
+      xlsx 업데이트 시:
         1. xlsx → CSV 내보내기 (regId, name, type 컬럼)
         2. 기존 mid-region-codes.csv의 query 컬럼을 새 CSV에 병합
         3. 신규·변경 항목의 query는 수동으로 채울 것
@@ -15,12 +17,13 @@
   현재 이어도(11G00601)만 해당 — 수중암초라 Kakao 결과 신뢰 불가.
 
 출력:
+  - ../src/main/resources/mid-land-region-latlon.csv
+    컬럼: regId, name, lat, lng  (getMidLandFcst용)
   - ../src/main/resources/mid-region-latlon.csv
-    컬럼: regId, name, lat, lng, type
-    type: A=육상(getMidLandFcst), C=기온(getMidTa)
+    컬럼: regId, name, lat, lng  (getMidTa용, C타입)
 
 실행:
-  cd util/kma-region/scripts && python3 generate_mid_region_csv.py
+  cd util/kma-region/scripts && python3 generate_mid_region_csv.py <kakao_api_key>
   또는
   ./gradlew :util:kma-region:generateMidRegionCsv
 
@@ -36,8 +39,11 @@ import urllib.parse
 import urllib.request
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+MID_LAND_REGION_CSV = os.path.join(SCRIPT_DIR, 'mid-land-region-codes.csv')
 MID_REGION_CSV = os.path.join(SCRIPT_DIR, 'mid-region-codes.csv')
-OUTPUT_CSV = os.path.normpath(os.path.join(SCRIPT_DIR, '../src/main/resources/mid-region-latlon.csv'))
+RESOURCES_DIR = os.path.normpath(os.path.join(SCRIPT_DIR, '../src/main/resources'))
+LAND_OUTPUT_CSV = os.path.join(RESOURCES_DIR, 'mid-land-region-latlon.csv')
+TA_OUTPUT_CSV = os.path.join(RESOURCES_DIR, 'mid-region-latlon.csv')
 
 if len(sys.argv) < 2 or not sys.argv[1].strip():
     sys.exit('사용법: python3 generate_mid_region_csv.py <kakao_api_key>\n'
@@ -78,34 +84,42 @@ def geocode(query):
     return None, None
 
 
-def main():
-    print('mid-region-codes.csv 읽는 중...')
-    with open(MID_REGION_CSV, encoding='utf-8') as f:
-        mid_rows = list(csv.DictReader(f))
-    print(f'  총 {len(mid_rows)}개 구역\n')
-
+def process(rows, has_type=False, type_filter=None):
+    """
+    rows: csv.DictReader rows
+    has_type: row에 'type' 컬럼이 있는지
+    type_filter: 처리할 type 값 ('C' 등). None이면 모두 처리.
+    반환: (output_rows, unmatched)
+      output_rows: [regId, name, lat, lng] 리스트
+    """
     output_rows = []
     unmatched = []
 
-    for row in mid_rows:
+    for row in rows:
         reg_id = row['regId']
         name = row['name']
-        typ = row['type']
         query = row.get('query', '').strip()
+        typ = row.get('type', '') if has_type else None
 
         if not reg_id:
             continue
 
-        # 북한·해상·외국·특수 스킵
+        # 북한 스킵
         if reg_id[:3] in ('11I', '11J', '11K', '11L'):
             continue
+
+        # type 필터
+        if type_filter and typ != type_filter:
+            continue
+
+        # 해상·외국·특수 스킵
         if typ in ('H', 'I', '0'):
             continue
 
-        # MANUAL_COORDS 우선 (Kakao API 호출 안 함)
+        # MANUAL_COORDS 우선
         if reg_id in MANUAL_COORDS:
             lat, lng = MANUAL_COORDS[reg_id]
-            output_rows.append([reg_id, name, f'{lat:.7f}', f'{lng:.7f}', typ])
+            output_rows.append([reg_id, name, f'{lat:.7f}', f'{lng:.7f}'])
             print(f'  [MANUAL] {reg_id}  {name}')
             continue
 
@@ -114,25 +128,52 @@ def main():
         time.sleep(0.05)
 
         if lat is not None:
-            output_rows.append([reg_id, name, f'{lat:.7f}', f'{lng:.7f}', typ])
+            output_rows.append([reg_id, name, f'{lat:.7f}', f'{lng:.7f}'])
         else:
-            unmatched.append((reg_id, name, typ))
-            output_rows.append([reg_id, name, 'UNMATCHED', 'UNMATCHED', typ])
+            unmatched.append((reg_id, name, query))
+            output_rows.append([reg_id, name, 'UNMATCHED', 'UNMATCHED'])
             print(f'  [WARN]   {reg_id}  {name}  쿼리: "{query}"')
 
-    os.makedirs(os.path.dirname(OUTPUT_CSV), exist_ok=True)
-    with open(OUTPUT_CSV, 'w', newline='', encoding='utf-8') as f:
+    return output_rows, unmatched
+
+
+def write_csv(path, rows):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow(['regId', 'name', 'lat', 'lng', 'type'])
-        writer.writerows(output_rows)
+        writer.writerow(['regId', 'name', 'lat', 'lng'])
+        writer.writerows(rows)
 
-    print(f'\n출력: {OUTPUT_CSV}')
-    print(f'총 {len(output_rows)}개 행')
 
-    if unmatched:
-        print(f'\n[WARN] 미매칭 {len(unmatched)}개 — mid-region-codes.csv query 컬럼 수정 필요:')
-        for reg_id, name, typ in unmatched:
-            print(f'  {reg_id}  {name}  ({typ})')
+def main():
+    all_unmatched = []
+
+    # getMidLandFcst용 (남한 10개 광역)
+    print('=== mid-land-region-codes.csv (getMidLandFcst용) ===')
+    with open(MID_LAND_REGION_CSV, encoding='utf-8') as f:
+        land_rows = list(csv.DictReader(f))
+    print(f'  총 {len(land_rows)}개 구역')
+    land_output, land_unmatched = process(land_rows, has_type=False)
+    write_csv(LAND_OUTPUT_CSV, land_output)
+    print(f'  출력: {LAND_OUTPUT_CSV} ({len(land_output)}개 행)')
+    all_unmatched += [('land', *u) for u in land_unmatched]
+
+    print()
+
+    # getMidTa용 (C타입)
+    print('=== mid-region-codes.csv (getMidTa용, C타입) ===')
+    with open(MID_REGION_CSV, encoding='utf-8') as f:
+        ta_rows = list(csv.DictReader(f))
+    print(f'  총 {len(ta_rows)}개 구역 (C타입만 처리)')
+    ta_output, ta_unmatched = process(ta_rows, has_type=True, type_filter='C')
+    write_csv(TA_OUTPUT_CSV, ta_output)
+    print(f'  출력: {TA_OUTPUT_CSV} ({len(ta_output)}개 행)')
+    all_unmatched += [('ta', *u) for u in ta_unmatched]
+
+    if all_unmatched:
+        print(f'\n[WARN] 미매칭 {len(all_unmatched)}개 — query 컬럼 수정 필요:')
+        for src, reg_id, name, query in all_unmatched:
+            print(f'  [{src}] {reg_id}  {name}  쿼리: "{query}"')
     else:
         print('\n미매칭 없음.')
 
