@@ -34,8 +34,8 @@ object KmaMidRegionMapper {
     private fun dist(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double =
         (lat1 - lat2).pow(2) + (lng1 - lng2).pow(2)
 
-    private const val FALLBACK_LAND_REG_ID = "11B00000"
-    private const val FALLBACK_TA_REG_ID = "11B10101"
+    private const val FALLBACK_LAND_REG_ID = "11B00000" //fallback - 경기.
+    private const val FALLBACK_TA_REG_ID = "11B10101" //fallback - 서울
     private const val CSV_RESOURCE = "/mid-region-latlon.csv"
 
     private data class Region(val regId: String, val lat: Double, val lng: Double)
