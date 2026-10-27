@@ -8,9 +8,9 @@ import kotlin.math.pow
  * getMidLandFcst와 getMidTa는 격자 좌표(nx, ny) 대신 예보구역코드(regId)를 요구함.
  * 입력 좌표와 각 구역 대표 좌표 간 유클리드 거리로 최근접 구역을 반환.
  *
- * 좌표 데이터 출처: mid-region-latlon.csv (기상청 공식 문서 기반 생성)
+ * 좌표 데이터 출처: mid-region-latlon.csv (Kakao Geocoding API 기반 생성)
  *   - 예보구역코드·구역명: 중기예보_중기기온예보구역코드_2025.12.xlsx
- *   - 위경도: 기상청41_단기예보 조회서비스_오픈API활용가이드_격자_위경도(2610).xlsx
+ *   - 위경도: Kakao Geocoding API (scripts/generate_mid_region_csv.py)
  *   - CSV 재생성: ./gradlew :util:kma-region:generateMidRegionCsv
  */
 object KmaMidRegionMapper {

@@ -5,13 +5,10 @@
 입력 (scripts/ 디렉토리):
   - mid-region-codes.csv : 예보구역코드, 구역명, 특성
       출처: 중기예보_중기기온예보구역코드_2025.12.xlsx (extract_source_csvs.py로 추출)
-  - grid-latlon.csv      : 시도, 시군구, 읍면동, nx, ny, 위도, 경도
-      출처: 기상청41_단기예보 조회서비스_오픈API활용가이드_격자_위경도(2610).xlsx
-      용도: nx/ny 격자 좌표 조회 전용 (lat/lng는 Kakao API로 취득)
 
 출력:
   - ../src/main/resources/mid-region-latlon.csv
-    컬럼: regId, name, lat, lng, nx, ny, type
+    컬럼: regId, name, lat, lng, type
     type: A=육상(getMidLandFcst), C=기온(getMidTa)
 
 실행:
@@ -20,6 +17,9 @@
   ./gradlew :util:kma-region:generateMidRegionCsv
 
 의존성: 표준 라이브러리만 사용 (외부 패키지 불필요)
+
+지명이 "."으로 구분된 경우 (예: "서울.인천.경기"):
+  각 지명의 좌표를 조회한 후 중간값(평균)을 사용.
 
 검색 실패 시 [WARN] 출력 → MANUAL_COORDS에 수동 추가 후 재실행
 """
@@ -33,7 +33,6 @@ import urllib.request
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 MID_REGION_CSV = os.path.join(SCRIPT_DIR, 'mid-region-codes.csv')
-GRID_LATLON_CSV = os.path.join(SCRIPT_DIR, 'grid-latlon.csv')
 OUTPUT_CSV = os.path.normpath(os.path.join(SCRIPT_DIR, '../src/main/resources/mid-region-latlon.csv'))
 
 KAKAO_API_KEY = '366992c357dd822f4c7ee547e6aaa5d7'
@@ -53,22 +52,15 @@ PREFIX_TO_SIDO_HINT = {
 }
 
 # Kakao API로 조회 불가한 항목 수동 좌표
-#   - A타입 광역 구역명: "서울.인천.경기", "강원영서" 등 행정구역명이 아닌 기상 구역명
-#   - 이어도: 수중암초 (행정구역 없음)
+# - 기상 구역명: "강원영서", "강원영동" (행정구역명 아님)
+# - 역사적 광역 지역명: "충청도", "전라도", "경상도" (현행 행정구역 아님)
+# - 이어도: 수중암초 (행정구역 없음)
 MANUAL_COORDS = {
-    '11B00000': (37.5636000, 126.9800000),   # 서울·인천·경기 → 서울
     '11C00000': (36.3471000, 127.3866000),   # 충청도 → 대전
-    '11C10000': (36.6372000, 127.4897000),   # 충청북도 → 청주
-    '11C20000': (36.3471000, 127.3866000),   # 충청남도 → 대전
     '11D10000': (37.8785000, 127.7323000),   # 강원영서 → 춘천
     '11D20000': (37.7491000, 128.8785000),   # 강원영동 → 강릉
     '11F00000': (35.8092000, 127.1219000),   # 전라도 → 전주
-    '11F10000': (35.8092000, 127.1219000),   # 전북자치도 → 전주
-    '11F20000': (35.1711000, 126.9141000),   # 전라남도 → 광주
-    '11G00000': (33.4996000, 126.5312000),   # 제주도 → 제주시
     '11H00000': (35.8685000, 128.6036000),   # 경상도 → 대구
-    '11H10000': (35.8685000, 128.6036000),   # 경상북도 → 대구
-    '11H20000': (35.1770000, 129.0770000),   # 경상남도 → 부산
     '11G00601': (32.1220000, 125.1827000),   # 이어도 (수중암초)
 }
 
@@ -101,32 +93,32 @@ def geocode(query):
     return None, None
 
 
-def load_grid_rows(grid_csv):
-    """grid-latlon.csv → [(lat, lng, nx, ny), ...] nx/ny 있는 행만."""
-    rows = []
-    with open(grid_csv, encoding='utf-8') as f:
-        for row in csv.DictReader(f):
-            try:
-                lat, lng = float(row['lat']), float(row['lng'])
-                nx, ny = row.get('nx', ''), row.get('ny', '')
-                if nx and ny:
-                    rows.append((lat, lng, nx, ny))
-            except ValueError:
-                continue
-    return rows
+def geocode_name(reg_id, name):
+    """
+    구역명 → (lat, lng).
+    "."으로 구분된 경우 각 지명의 좌표 평균을 반환.
+    """
+    hint = PREFIX_TO_SIDO_HINT.get(reg_id[:4], '')
+    parts = name.split('.')
 
+    coords = []
+    for part in parts:
+        query = f'{hint} {part}'.strip() if hint else part
+        lat, lng = geocode(query)
+        time.sleep(0.05)
+        if lat is not None:
+            coords.append((lat, lng))
+        else:
+            print(f'  [WARN]   {reg_id}  "{query}" 조회 실패')
 
-def nearest_grid(lat, lng, grid_rows):
-    """유클리드 최근접 격자(nx, ny) 반환."""
-    best = min(grid_rows, key=lambda r: (r[0] - lat) ** 2 + (r[1] - lng) ** 2)
-    return best[2], best[3]
+    if not coords:
+        return None, None
+    avg_lat = sum(c[0] for c in coords) / len(coords)
+    avg_lng = sum(c[1] for c in coords) / len(coords)
+    return avg_lat, avg_lng
 
 
 def main():
-    print('grid-latlon.csv 읽는 중...')
-    grid_rows = load_grid_rows(GRID_LATLON_CSV)
-    print(f'  {len(grid_rows)}개 격자 로드')
-
     print('mid-region-codes.csv 읽는 중...')
     with open(MID_REGION_CSV, encoding='utf-8') as f:
         mid_rows = list(csv.DictReader(f))
@@ -152,29 +144,24 @@ def main():
         # 수동 좌표 우선
         if reg_id in MANUAL_COORDS:
             lat, lng = MANUAL_COORDS[reg_id]
-            nx, ny = nearest_grid(lat, lng, grid_rows)
-            output_rows.append([reg_id, name, f'{lat:.7f}', f'{lng:.7f}', nx, ny, typ])
+            output_rows.append([reg_id, name, f'{lat:.7f}', f'{lng:.7f}', typ])
             print(f'  [MANUAL] {reg_id}  {name}')
             continue
 
-        # Kakao API 조회
-        hint = PREFIX_TO_SIDO_HINT.get(reg_id[:4], '')
-        query = f'{hint} {name}'.strip() if hint else name
-        lat, lng = geocode(query)
-        time.sleep(0.05)
+        # Kakao API 조회 ("." 구분 지명은 각 지명 좌표의 평균)
+        lat, lng = geocode_name(reg_id, name)
 
         if lat is not None:
-            nx, ny = nearest_grid(lat, lng, grid_rows)
-            output_rows.append([reg_id, name, f'{lat:.7f}', f'{lng:.7f}', nx, ny, typ])
+            output_rows.append([reg_id, name, f'{lat:.7f}', f'{lng:.7f}', typ])
         else:
-            unmatched.append((reg_id, name, typ, query))
-            output_rows.append([reg_id, name, 'UNMATCHED', 'UNMATCHED', '', '', typ])
-            print(f'  [WARN]   {reg_id}  {name}  쿼리: "{query}"')
+            unmatched.append((reg_id, name, typ))
+            output_rows.append([reg_id, name, 'UNMATCHED', 'UNMATCHED', typ])
+            print(f'  [WARN]   {reg_id}  {name}  ({typ}) 미매칭')
 
     os.makedirs(os.path.dirname(OUTPUT_CSV), exist_ok=True)
     with open(OUTPUT_CSV, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow(['regId', 'name', 'lat', 'lng', 'nx', 'ny', 'type'])
+        writer.writerow(['regId', 'name', 'lat', 'lng', 'type'])
         writer.writerows(output_rows)
 
     print(f'\n출력: {OUTPUT_CSV}')
@@ -182,8 +169,8 @@ def main():
 
     if unmatched:
         print(f'\n[WARN] 미매칭 {len(unmatched)}개 — MANUAL_COORDS에 수동 추가 필요:')
-        for reg_id, name, typ, query in unmatched:
-            print(f'  {reg_id}  {name}  ({typ})  쿼리: "{query}"')
+        for reg_id, name, typ in unmatched:
+            print(f'  {reg_id}  {name}  ({typ})')
     else:
         print('\n미매칭 없음.')
 
