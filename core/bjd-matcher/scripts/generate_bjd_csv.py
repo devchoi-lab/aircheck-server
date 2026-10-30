@@ -5,11 +5,13 @@
 입력 (scripts/ 디렉토리):
   - 국토교통부_전국 법정동_20260630.csv : 법정동 코드표 원본
       컬럼: 법정동코드, 시도명, 시군구명, 읍면동명, 리명, 순번, 생성일자
+      계층 순서로 정렬되어 있음: 도 → 시군구 → 읍면동 → 리
 
 처리 규칙:
   - 읍면동명이 있는 항목만 Kakao API로 위경도 조회 (말단 단위)
   - 리 단위 중복 제거: 시도명+시군구명+읍면동명 기준 첫 번째만 유지
   - 도/시군구 단위 항목은 위경도 없이 포함 (법정동 코드 조회용)
+  - doCode/guCode는 CSV를 순서대로 읽으며 상위 단위 행에서 직접 취득
 
 출력:
   - ../src/main/resources/bjd-lat-lng.csv
@@ -70,18 +72,6 @@ def geocode(query):
     return None, None
 
 
-def derive_do_code(code):
-    return code[:2] + '0' * 8
-
-
-def derive_gu_code(code):
-    return code[:5] + '0' * 5
-
-
-def derive_dong_code(code):
-    return code[:8] + '0' * 2
-
-
 def main():
     print(f'입력: {BJD_INPUT_CSV}')
     with open(BJD_INPUT_CSV, encoding='utf-8-sig') as f:
@@ -95,7 +85,6 @@ def main():
         do_name = row['시도명'].strip()
         gu_name = row['시군구명'].strip()
         dong_name = row['읍면동명'].strip()
-        ri_name = row['리명'].strip()
 
         if dong_name:
             key = f'{do_name}{gu_name}{dong_name}'
@@ -110,34 +99,62 @@ def main():
     output_rows = []
     unmatched = []
 
-    for row in deduped:
+    # CSV가 계층 순서(도 → 시군구 → 읍면동)로 정렬되어 있으므로
+    # 상위 단위 행을 만날 때마다 코드를 메모리에 보관하여 하위 단위에서 활용
+    current_do_code = ''
+    current_do_name = ''
+    current_gu_code = ''
+    current_gu_name = ''
+
+    total = len(deduped)
+    for i, row in enumerate(deduped, 1):
+        if i % 500 == 0:
+            print(f'  [{i}/{total}] 처리 중...')
         code = row['법정동코드'].strip()
         do_name = row['시도명'].strip()
         gu_name = row['시군구명'].strip()
         dong_name = row['읍면동명'].strip()
 
-        do_code = derive_do_code(code)
-        gu_code = derive_gu_code(code) if gu_name else ''
-        dong_code = derive_dong_code(code) if dong_name else ''
-
-        if dong_name:
-            # 읍면동 단위 — Kakao API로 위경도 조회
-            query = f'{do_name} {gu_name} {dong_name}'.strip()
-            lat, lng = geocode(query)
-            time.sleep(0.05)
-
-            if lat is not None:
-                output_rows.append([code, do_code, do_name, gu_code, gu_name,
-                                     dong_code, dong_name, f'{lat:.7f}', f'{lng:.7f}'])
-            else:
-                unmatched.append((code, do_name, gu_name, dong_name))
-                output_rows.append([code, do_code, do_name, gu_code, gu_name,
-                                     dong_code, dong_name, 'UNMATCHED', 'UNMATCHED'])
-                print(f'  [WARN] {code}  {do_name} {gu_name} {dong_name}')
+        if not gu_name and not dong_name:
+            level = 'do'
+        elif not dong_name:
+            level = 'gu'
         else:
-            # 도/시군구 단위 — 위경도 없이 포함
-            output_rows.append([code, do_code, do_name, gu_code, gu_name,
-                                 dong_code, dong_name, '', ''])
+            level = 'dong'
+
+        match level:
+            case 'do':
+                # 도 단위 행 — 이후 행에서 사용할 코드 저장
+                current_do_code = code
+                current_do_name = do_name
+                current_gu_code = ''
+                current_gu_name = ''
+                output_rows.append([code, current_do_code, current_do_name,
+                                     '', '', '', '', '', ''])
+
+            case 'gu':
+                # 시군구 단위 행 — 이후 행에서 사용할 코드 저장
+                current_gu_code = code
+                current_gu_name = gu_name
+                output_rows.append([code, current_do_code, current_do_name,
+                                     current_gu_code, current_gu_name, '', '', '', ''])
+
+            case 'dong':
+                # 읍면동 단위 행 — Kakao API로 위경도 조회
+                query = f'{do_name} {gu_name} {dong_name}'.strip()
+                lat, lng = geocode(query)
+                time.sleep(0.05)
+
+                if lat is not None:
+                    output_rows.append([code, current_do_code, current_do_name,
+                                         current_gu_code, current_gu_name,
+                                         code, dong_name, f'{lat:.7f}', f'{lng:.7f}'])
+                else:
+                    unmatched.append((code, do_name, gu_name, dong_name))
+                    output_rows.append([code, current_do_code, current_do_name,
+                                         current_gu_code, current_gu_name,
+                                         code, dong_name, 'UNMATCHED', 'UNMATCHED'])
+                    print(f'  [WARN] {code}  {do_name} {gu_name} {dong_name}')
 
     os.makedirs(RESOURCES_DIR, exist_ok=True)
     with open(OUTPUT_CSV, 'w', newline='', encoding='utf-8') as f:
