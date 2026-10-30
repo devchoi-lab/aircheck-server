@@ -2,6 +2,12 @@ import java.util.Properties
 
 plugins {
     kotlin("jvm")
+    kotlin("plugin.spring")
+}
+
+dependencies {
+    implementation(project(":core:domain"))
+    implementation("org.springframework.boot:spring-boot-autoconfigure")
 }
 
 /**

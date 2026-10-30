@@ -15,7 +15,8 @@ object BjdMatcher {
      * latLng가 있는 말단 단위(읍면동) 항목 중 유클리드 최근접 매칭.
      */
     fun match(lat: Double, lng: Double): BjdData? =
-        bjdList.minByOrNull { dist(it.latLng!!.first, it.latLng.second, lat, lng) }
+        bjdList.filter { it.latLng != null }
+            .minByOrNull { dist(it.latLng!!.first, it.latLng.second, lat, lng) }
 
     private fun dist(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double =
         (lat1 - lat2).pow(2) + (lng1 - lng2).pow(2)
