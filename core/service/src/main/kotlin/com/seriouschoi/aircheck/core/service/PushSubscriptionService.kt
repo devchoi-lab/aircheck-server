@@ -1,11 +1,12 @@
 package com.seriouschoi.aircheck.core.service
 
-import com.seriouschoi.aircheck.core.domain.port.GetWeatherUseCase
 import com.seriouschoi.aircheck.core.domain.port.PushSubscriptionResult
 import com.seriouschoi.aircheck.core.domain.port.PushSubscriptionUseCase
 import com.seriouschoi.aircheck.core.domain.port.PushNotificationPort
 import com.seriouschoi.aircheck.core.domain.port.PushSubscriptionData
 import com.seriouschoi.aircheck.core.domain.port.PushSubscriptionPort
+import com.seriouschoi.aircheck.core.domain.usecase.GetAirQualityUseCase
+import com.seriouschoi.aircheck.core.domain.usecase.GetWeatherForecastUseCase
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -15,7 +16,8 @@ import java.time.LocalTime
 class PushSubscriptionService(
     private val pushSubscriptionPort: PushSubscriptionPort,
     private val pushNotificationPort: PushNotificationPort,
-    private val weatherUseCase: GetWeatherUseCase
+    private val getWeatherForecastUseCase: GetWeatherForecastUseCase,
+    private val getAirQualityUseCase: GetAirQualityUseCase
 ) : PushSubscriptionUseCase {
     
     private val log = LoggerFactory.getLogger(javaClass)
@@ -65,13 +67,12 @@ class PushSubscriptionService(
 
         subscriptions.forEach { sub ->
             try {
-                val weather = weatherUseCase.getWeather(sub.latitude, sub.longitude)
-                val air = weatherUseCase.getAirQuality(sub.latitude, sub.longitude)
+                val weather = getWeatherForecastUseCase.execute(sub.latitude, sub.longitude)
+                val air = getAirQualityUseCase.execute(sub.latitude, sub.longitude)
 
                 if (weather != null) {
                     val recommendation = buildRecommendation(weather.current.temperature, air?.pm25)
                     
-                    // PM2.5 등급 문자열 생성 (밀도 기반)
                     val pm25Status = air?.pm25?.let { getPm25Status(it) } ?: "❓ 알 수 없음"
                     
                     pushNotificationPort.sendWeatherSummary(

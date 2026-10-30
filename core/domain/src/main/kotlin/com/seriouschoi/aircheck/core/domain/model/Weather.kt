@@ -108,3 +108,8 @@ enum class WeatherCondition(val label: String, val emoji: String) {
         }
     }
 }
+
+data class CombinedWeatherResult(
+    val weather: WeatherResponse?,
+    val airQuality: AirQualityResponse?
+)
