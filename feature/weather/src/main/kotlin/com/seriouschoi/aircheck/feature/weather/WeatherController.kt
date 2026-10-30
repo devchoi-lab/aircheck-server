@@ -1,13 +1,11 @@
-package com.seriouschoi.aircheck.adapter.`in`.web
+package com.seriouschoi.aircheck.feature.weather
 
 import com.seriouschoi.aircheck.core.domain.model.AirQualityResponse
+import com.seriouschoi.aircheck.core.domain.model.CombinedWeatherResult
 import com.seriouschoi.aircheck.core.domain.model.WeatherResponse
-import com.seriouschoi.aircheck.core.domain.port.CombinedWeatherResult
-import com.seriouschoi.aircheck.core.domain.port.GetWeatherUseCase
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
+import com.seriouschoi.aircheck.core.domain.usecase.GetAirQualityUseCase
+import com.seriouschoi.aircheck.core.domain.usecase.GetCombinedWeatherUseCase
+import com.seriouschoi.aircheck.core.domain.usecase.GetWeatherForecastUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -15,6 +13,10 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.runBlocking
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -27,7 +29,9 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v1")
 class WeatherController(
-    private val weatherUseCase: GetWeatherUseCase
+    private val getCombinedWeatherUseCase: GetCombinedWeatherUseCase,
+    private val getWeatherForecastUseCase: GetWeatherForecastUseCase,
+    private val getAirQualityUseCase: GetAirQualityUseCase
 ) {
 
     @Operation(
@@ -48,9 +52,8 @@ class WeatherController(
         @RequestParam lat: Double,
         @Parameter(description = "경도 (예: 126.9780)", example = "126.9780")
         @RequestParam lng: Double
-    ): ResponseEntity<CombinedWeatherResult> {
-        return ResponseEntity.ok(weatherUseCase.getCombined(lat, lng))
-    }
+    ): ResponseEntity<CombinedWeatherResult> =
+        ResponseEntity.ok(getCombinedWeatherUseCase.execute(lat, lng))
 
     @Operation(
         summary = "날씨 예보 조회",
@@ -69,9 +72,8 @@ class WeatherController(
         @RequestParam lat: Double,
         @Parameter(description = "경도", example = "126.9780")
         @RequestParam lng: Double
-    ): ResponseEntity<WeatherResponse?> {
-        return ResponseEntity.ok(weatherUseCase.getWeather(lat, lng))
-    }
+    ): ResponseEntity<WeatherResponse?> =
+        ResponseEntity.ok(getWeatherForecastUseCase.execute(lat, lng))
 
     @Operation(
         summary = "대기질 조회",
@@ -91,9 +93,8 @@ class WeatherController(
         @RequestParam lat: Double,
         @Parameter(description = "경도", example = "126.9780")
         @RequestParam lng: Double
-    ): ResponseEntity<AirQualityResponse?> {
-        return ResponseEntity.ok(weatherUseCase.getAirQuality(lat, lng))
-    }
+    ): ResponseEntity<AirQualityResponse?> =
+        ResponseEntity.ok(getAirQualityUseCase.execute(lat, lng))
 
     @Operation(
         summary = "다중 위치 일괄 조회",
@@ -110,11 +111,10 @@ class WeatherController(
     fun getBatchWeather(
         @RequestBody request: BatchWeatherRequest
     ): ResponseEntity<List<BatchWeatherItem>> {
-        // 병렬 처리로 성능 향상
         val results = runBlocking {
             request.locations.take(10).map { location ->
                 async(Dispatchers.IO) {
-                    val result = weatherUseCase.getCombined(location.lat, location.lng)
+                    val result = getCombinedWeatherUseCase.execute(location.lat, location.lng)
                     BatchWeatherItem(
                         lat = location.lat,
                         lng = location.lng,
