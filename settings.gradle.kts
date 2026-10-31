@@ -7,6 +7,7 @@ include(":core:airkorea-adapter")
 include(":core:openmeteo-adapter")
 include(":core:kma-adapter")
 include(":core:persistence-adapter")
+include(":core:bjd-matcher")
 include(":core:fcm-adapter")
 include(":core:firebase-adapter")
 
