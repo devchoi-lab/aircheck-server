@@ -15,6 +15,7 @@ class BjdMatcherAdapter : BjdPort {
         val latLng = bjd.latLng ?: return null
         return BjdLocation(
             doCode = bjd.doGroup.code,
+            sigunguCode = bjd.guGroup?.code ?: bjd.doGroup.code,
             lat = latLng.first,
             lng = latLng.second
         )
