@@ -22,10 +22,10 @@ class KmaMidLandForecastCache(
     private val kmaMidApi: KmaMidApi,
     private val apiUsagePort: ApiUsagePort?
 ) {
-    @Cacheable("kma-mid-land-forecast", key = "#doCode")
-    fun fetch(doCode: Long): MidLandForecast {
+    @Cacheable("kma-mid-land-forecast", key = "#sigunguCode")
+    fun fetch(doCode: Long, sigunguCode: Long): MidLandForecast {
         check(apiKey.isNotBlank()) { "KMA API key not configured" }
-        val regId = doCodeToLandRegId(doCode)
+        val regId = doCodeToLandRegId(doCode, sigunguCode)
         return runWithUsage("KMA_MID_LAND_FCST", apiUsagePort) {
             val response = kmaMidApi.getMidLandFcst(
                 serviceKey = apiKey, pageNo = 1, numOfRows = 10, dataType = "JSON",
@@ -60,11 +60,13 @@ class KmaMidLandForecastCache(
     }
 
     /**
-     * 법정동 도 코드 → 중기육상예보 예보구역코드(landRegId)
+     * 법정동 도/시군구 코드 → 중기육상예보 예보구역코드(landRegId)
      *
-     * 강원특별자치도(5100000000)는 영서/영동 구분 불가 — 영서(11D10000)로 기본 매핑.
+     * 강원특별자치도(5100000000)는 시군구 코드로 영동/영서를 구분.
+     * 영동: 강릉·동해·태백·속초·삼척·고성·양양
+     * 영서: 그 외 (춘천·원주·홍천·횡성·영월·평창·정선·철원·화천·양구·인제)
      */
-    private fun doCodeToLandRegId(doCode: Long): String = when (doCode) {
+    private fun doCodeToLandRegId(doCode: Long, sigunguCode: Long): String = when (doCode) {
         1100000000L -> "11B00000" // 서울특별시
         2800000000L -> "11B00000" // 인천광역시
         4100000000L -> "11B00000" // 경기도
@@ -72,7 +74,7 @@ class KmaMidLandForecastCache(
         3000000000L -> "11C20000" // 대전광역시
         3600000000L -> "11C20000" // 세종특별자치시
         4400000000L -> "11C20000" // 충청남도
-        5100000000L -> "11D10000" // 강원특별자치도 (영서 기본값)
+        5100000000L -> gangwonLandRegId(sigunguCode)
         5200000000L -> "11F10000" // 전북특별자치도
         1200000000L -> "11F20000" // 전남광주통합특별시
         5000000000L -> "11G00000" // 제주특별자치도
@@ -82,5 +84,18 @@ class KmaMidLandForecastCache(
         3100000000L -> "11H20000" // 울산광역시
         4800000000L -> "11H20000" // 경상남도
         else         -> "11B00000" // fallback
+    }
+
+    private fun gangwonLandRegId(sigunguCode: Long): String {
+        val yeongdong = setOf(
+            5115000000L, // 강릉시
+            5117000000L, // 동해시
+            5119000000L, // 태백시
+            5121000000L, // 속초시
+            5123000000L, // 삼척시
+            5182000000L, // 고성군
+            5183000000L  // 양양군
+        )
+        return if (sigunguCode in yeongdong) "11D20000" else "11D10000"
     }
 }

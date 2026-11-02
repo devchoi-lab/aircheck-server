@@ -25,8 +25,8 @@ class KmaWeatherAdapter(
     override fun getShortForecast(lat: Double, lng: Double): Result<WeatherResponse> =
         Result.runCatching { shortForecastCache.fetch(lat, lng) }
 
-    override fun getMidLandForecast(doCode: Long): Result<MidLandForecast> =
-        Result.runCatching { midLandForecastCache.fetch(doCode) }
+    override fun getMidLandForecast(doCode: Long, sigunguCode: Long): Result<MidLandForecast> =
+        Result.runCatching { midLandForecastCache.fetch(doCode, sigunguCode) }
 
     override fun getMidTaForecast(lat: Double, lng: Double): Result<MidTaForecast> =
         Result.runCatching { midTaForecastCache.fetch(lat, lng) }

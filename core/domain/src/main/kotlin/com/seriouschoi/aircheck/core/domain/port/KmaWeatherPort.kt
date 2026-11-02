@@ -19,10 +19,10 @@ interface KmaWeatherPort {
     /**
      * 중기육상예보 (3~10일 강수확률·날씨). 실패 시 Result.failure.
      *
-     * @param doCode 법정동 도 단위 코드 (BjdLocation.doCode). 내부에서 landRegId로 변환.
-     * 강원도(5100000000)는 영서/영동 구분 불가 — 영서(11D10000)로 기본 매핑됨.
+     * @param doCode      법정동 도 단위 코드 (BjdLocation.doCode). 내부에서 landRegId로 변환.
+     * @param sigunguCode 법정동 시군구 단위 코드 (BjdLocation.sigunguCode). 강원 영동/영서 구분에 사용.
      */
-    fun getMidLandForecast(doCode: Long): Result<MidLandForecast>
+    fun getMidLandForecast(doCode: Long, sigunguCode: Long): Result<MidLandForecast>
 
     /** 중기기온예보 (3~10일 최저·최고기온). lat/lng → taRegId 변환 후 조회. 실패 시 Result.failure. */
     fun getMidTaForecast(lat: Double, lng: Double): Result<MidTaForecast>

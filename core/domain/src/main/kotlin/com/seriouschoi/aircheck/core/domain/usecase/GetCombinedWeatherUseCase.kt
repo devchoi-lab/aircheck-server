@@ -27,7 +27,7 @@ class GetCombinedWeatherUseCase @Inject constructor(
         val weather = if (kma != null && location != null) {
             val short = kma.getShortForecast(normLat, normLng).getOrNull()
             if (short != null) {
-                val midLand = kma.getMidLandForecast(location.doCode).getOrNull()
+                val midLand = kma.getMidLandForecast(location.doCode, location.sigunguCode).getOrNull()
                 val midTa = kma.getMidTaForecast(normLat, normLng).getOrNull()
                 val midTerm = if (midLand != null && midTa != null) assembleMidTermForecast(midLand, midTa) else emptyList()
                 short.copy(midTermForecast = midTerm)

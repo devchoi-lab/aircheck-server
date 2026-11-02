@@ -24,7 +24,7 @@ class GetWeatherForecastUseCase @Inject constructor(
         val kma = kmaWeatherPort.orElse(null)
         if (kma != null && location != null) {
             val short = kma.getShortForecast(normLat, normLng).getOrNull() ?: return null
-            val midLand = kma.getMidLandForecast(location.doCode).getOrNull()
+            val midLand = kma.getMidLandForecast(location.doCode, location.sigunguCode).getOrNull()
             val midTa = kma.getMidTaForecast(normLat, normLng).getOrNull()
             val midTerm = if (midLand != null && midTa != null) assembleMidTermForecast(midLand, midTa) else emptyList()
             return short.copy(midTermForecast = midTerm)
