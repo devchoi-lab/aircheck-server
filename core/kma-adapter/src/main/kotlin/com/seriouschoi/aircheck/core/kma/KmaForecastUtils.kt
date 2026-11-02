@@ -6,11 +6,30 @@ import com.seriouschoi.aircheck.core.domain.model.HourlyForecast
 import com.seriouschoi.aircheck.core.domain.model.WeatherCondition
 import com.seriouschoi.aircheck.core.kma.dto.FcstItem
 import com.seriouschoi.aircheck.core.kma.dto.NcstItem
+import kotlinx.serialization.json.Json
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 internal val KST_ZONE: ZoneId = ZoneId.of("Asia/Seoul")
+
+internal val forecastJson = Json {
+    ignoreUnknownKeys = true
+    coerceInputValues = true
+}
+
+internal fun <T> runWithUsage(apiType: String, block: () -> T): T {
+    val startTime = System.currentTimeMillis()
+    val logger = mu.KotlinLogging.logger {}
+    return try {
+        val result = block()
+        logger.debug { "$apiType success (${System.currentTimeMillis() - startTime}ms)" }
+        result
+    } catch (e: Exception) {
+        logger.error(e) { "$apiType failed: ${e.message}" }
+        throw e
+    }
+}
 
 // ── 시간 계산 ─────────────────────────────────────────────────────────────────
 
