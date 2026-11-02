@@ -58,7 +58,7 @@ internal fun calculateVilageFcstBaseDateTime(): Pair<String, String> {
 
 /** 중기예보 tmFc 계산 (발표시각: 06시·18시) */
 internal fun calculateMidFcstTmFc(): String {
-    val now = LocalDateTime.now()
+    val now = LocalDateTime.now(KST_ZONE)
     val base = when {
         now.hour < 6  -> now.minusDays(1).withHour(18)
         now.hour < 18 -> now.withHour(6)
