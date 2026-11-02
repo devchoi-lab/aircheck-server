@@ -13,17 +13,17 @@ import com.seriouschoi.aircheck.core.domain.model.WeatherResponse
  * 구현체: KmaWeatherAdapter
  */
 interface KmaWeatherPort {
-    /** 초단기실황 + 단기예보 (midTermForecast는 빈 리스트) */
-    fun getShortForecast(lat: Double, lng: Double): WeatherResponse?
+    /** 초단기실황 + 단기예보 (midTermForecast는 빈 리스트). 실패 시 Result.failure. */
+    fun getShortForecast(lat: Double, lng: Double): Result<WeatherResponse>
 
     /**
-     * 중기육상예보 (3~10일 강수확률·날씨)
+     * 중기육상예보 (3~10일 강수확률·날씨). 실패 시 Result.failure.
      *
      * @param doCode 법정동 도 단위 코드 (BjdLocation.doCode). 내부에서 landRegId로 변환.
      * 강원도(5100000000)는 영서/영동 구분 불가 — 영서(11D10000)로 기본 매핑됨.
      */
-    fun getMidLandForecast(doCode: Long): MidLandForecast?
+    fun getMidLandForecast(doCode: Long): Result<MidLandForecast>
 
-    /** 중기기온예보 (3~10일 최저·최고기온). lat/lng → taRegId 변환 후 조회. */
-    fun getMidTaForecast(lat: Double, lng: Double): MidTaForecast?
+    /** 중기기온예보 (3~10일 최저·최고기온). lat/lng → taRegId 변환 후 조회. 실패 시 Result.failure. */
+    fun getMidTaForecast(lat: Double, lng: Double): Result<MidTaForecast>
 }
