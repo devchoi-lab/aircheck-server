@@ -22,7 +22,7 @@ class KmaMidTaForecastCache(
     fun fetch(lat: Double, lng: Double): MidTaForecast {
         check(apiKey.isNotBlank()) { "KMA API key not configured" }
         val regId = KmaMidRegionMapper.toTaRegId(lat, lng)
-        return runWithUsage("KMA_MID_TA") {
+        return runWithUsage("KMA_MID_TA", apiUsagePort) {
             val response = kmaMidApi.getMidTa(
                 serviceKey = apiKey, pageNo = 1, numOfRows = 10, dataType = "JSON",
                 regId = regId, tmFc = calculateMidFcstTmFc()

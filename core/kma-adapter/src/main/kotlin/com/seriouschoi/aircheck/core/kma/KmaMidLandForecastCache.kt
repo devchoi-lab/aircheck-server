@@ -26,7 +26,7 @@ class KmaMidLandForecastCache(
     fun fetch(doCode: Long): MidLandForecast {
         check(apiKey.isNotBlank()) { "KMA API key not configured" }
         val regId = doCodeToLandRegId(doCode)
-        return runWithUsage("KMA_MID_LAND_FCST") {
+        return runWithUsage("KMA_MID_LAND_FCST", apiUsagePort) {
             val response = kmaMidApi.getMidLandFcst(
                 serviceKey = apiKey, pageNo = 1, numOfRows = 10, dataType = "JSON",
                 regId = regId, tmFc = calculateMidFcstTmFc()

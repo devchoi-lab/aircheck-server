@@ -43,7 +43,7 @@ class KmaShortForecastCache(
     }
 
     private fun fetchCurrentWeather(nx: Int, ny: Int, baseDate: String, baseTime: String) =
-        runWithUsage("KMA_ULTRA_SRT_NCST") {
+        runWithUsage("KMA_ULTRA_SRT_NCST", apiUsagePort) {
             val response = kmaApi.getUltraSrtNcst(
                 serviceKey = apiKey, pageNo = 1, numOfRows = 60, dataType = "JSON",
                 baseDate = baseDate, baseTime = baseTime, nx = nx, ny = ny
@@ -56,7 +56,7 @@ class KmaShortForecastCache(
         }
 
     private fun fetchVilageFcstItems(nx: Int, ny: Int, baseDate: String, baseTime: String): List<FcstItem> =
-        runWithUsage("KMA_VILAGE_FCST") {
+        runWithUsage("KMA_VILAGE_FCST", apiUsagePort) {
             val response = kmaApi.getVilageFcst(
                 serviceKey = apiKey, pageNo = 1, numOfRows = 1000, dataType = "JSON",
                 baseDate = baseDate, baseTime = baseTime, nx = nx, ny = ny

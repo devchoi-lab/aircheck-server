@@ -4,6 +4,7 @@ import com.seriouschoi.aircheck.core.domain.model.CurrentWeather
 import com.seriouschoi.aircheck.core.domain.model.DailyForecast
 import com.seriouschoi.aircheck.core.domain.model.HourlyForecast
 import com.seriouschoi.aircheck.core.domain.model.WeatherCondition
+import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
 import com.seriouschoi.aircheck.core.kma.dto.FcstItem
 import com.seriouschoi.aircheck.core.kma.dto.NcstItem
 import kotlinx.serialization.json.Json
@@ -18,15 +19,19 @@ internal val forecastJson = Json {
     coerceInputValues = true
 }
 
-internal fun <T> runWithUsage(apiType: String, block: () -> T): T {
+private val usageLogger = mu.KotlinLogging.logger {}
+
+internal fun <T> runWithUsage(apiType: String, apiUsagePort: ApiUsagePort?, block: () -> T): T {
     val startTime = System.currentTimeMillis()
-    val logger = mu.KotlinLogging.logger {}
     return try {
         val result = block()
-        logger.debug { "$apiType success (${System.currentTimeMillis() - startTime}ms)" }
+        val elapsed = System.currentTimeMillis() - startTime
+        apiUsagePort?.recordSuccess(apiType, elapsed)
+        usageLogger.debug { "$apiType success (${elapsed}ms)" }
         result
     } catch (e: Exception) {
-        logger.error(e) { "$apiType failed: ${e.message}" }
+        apiUsagePort?.recordFailure(apiType, e.message)
+        usageLogger.error(e) { "$apiType failed: ${e.message}" }
         throw e
     }
 }
