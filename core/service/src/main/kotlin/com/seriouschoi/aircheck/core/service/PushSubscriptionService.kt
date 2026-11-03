@@ -71,14 +71,14 @@ class PushSubscriptionService(
                 val air = getAirQualityUseCase.execute(sub.latitude, sub.longitude)
 
                 if (weather != null) {
-                    val recommendation = buildRecommendation(weather.current.temperature, air?.pm25)
+                    val recommendation = buildRecommendation(weather.shortForecast.current.temperature, air?.pm25)
                     
                     val pm25Status = air?.pm25?.let { getPm25Status(it) } ?: "❓ 알 수 없음"
                     
                     pushNotificationPort.sendWeatherSummary(
                         token = sub.fcmToken,
-                        temperature = weather.current.temperature,
-                        weatherCondition = weather.current.weatherCondition.emoji + " " + weather.current.weatherCondition.label,
+                        temperature = weather.shortForecast.current.temperature,
+                        weatherCondition = weather.shortForecast.current.weatherCondition.emoji + " " + weather.shortForecast.current.weatherCondition.label,
                         pm25Grade = pm25Status,
                         recommendation = recommendation
                     )

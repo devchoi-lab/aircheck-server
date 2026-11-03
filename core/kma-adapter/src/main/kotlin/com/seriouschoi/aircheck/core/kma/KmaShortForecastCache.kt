@@ -1,6 +1,9 @@
 package com.seriouschoi.aircheck.core.kma
 
-import com.seriouschoi.aircheck.core.domain.model.WeatherResponse
+import com.seriouschoi.aircheck.core.domain.model.CurrentWeather
+import com.seriouschoi.aircheck.core.domain.model.DailyForecast
+import com.seriouschoi.aircheck.core.domain.model.HourlyForecast
+import com.seriouschoi.aircheck.core.domain.model.ShortForecast
 import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
 import com.seriouschoi.aircheck.core.kma.dto.FcstItem
 import com.seriouschoi.aircheck.core.kma.dto.KmaApiResponse
@@ -24,21 +27,22 @@ class KmaShortForecastCache(
     private val apiUsagePort: ApiUsagePort?
 ) {
     @Cacheable("kma-short-forecast", key = "#lat + '_' + #lng")
-    fun fetch(lat: Double, lng: Double): WeatherResponse {
+    fun fetch(lat: Double, lng: Double): ShortForecast {
         check(apiKey.isNotBlank()) { "KMA API key not configured" }
 
-        val grid = KmaGridConverter.toGrid(lat, lng)
+        val grid: KmaGridConverter.Grid = KmaGridConverter.toGrid(lat, lng)
         val (baseDate, baseTime) = calculateBaseDateTime()
         val (vilageFcstDate, vilageFcstTime) = calculateVilageFcstBaseDateTime()
 
-        val currentWeather = fetchCurrentWeather(grid.nx, grid.ny, baseDate, baseTime)
-        val vilageFcstItems = fetchVilageFcstItems(grid.nx, grid.ny, vilageFcstDate, vilageFcstTime)
+        val currentWeather: CurrentWeather = fetchCurrentWeather(grid.nx, grid.ny, baseDate, baseTime)
+        val vilageFcstItems: List<FcstItem> = fetchVilageFcstItems(grid.nx, grid.ny, vilageFcstDate, vilageFcstTime)
+        val hourlyForecast: List<HourlyForecast> = parseExtendedHourlyForecast(vilageFcstItems)
+        val dailyForecast: List<DailyForecast> = parseDailyForecast(vilageFcstItems)
 
-        return WeatherResponse(
+        return ShortForecast(
             current = currentWeather,
-            hourlyForecast = parseExtendedHourlyForecast(vilageFcstItems),
-            dailyForecast = parseDailyForecast(vilageFcstItems),
-            midTermForecast = emptyList()
+            hourlyForecast = hourlyForecast,
+            dailyForecast = dailyForecast
         )
     }
 
@@ -55,13 +59,16 @@ class KmaShortForecastCache(
             parseCurrentWeather(parsed.response.body?.items?.item ?: error("KMA NCST: no items"))
         }
 
+    /**
+     * 단기예보조회. 최대 +5일 예보
+     */
     private fun fetchVilageFcstItems(nx: Int, ny: Int, baseDate: String, baseTime: String): List<FcstItem> =
         runWithUsage("KMA_VILAGE_FCST", apiUsagePort) {
             val response = kmaApi.getVilageFcst(
                 serviceKey = apiKey, pageNo = 1, numOfRows = 1000, dataType = "JSON",
                 baseDate = baseDate, baseTime = baseTime, nx = nx, ny = ny
             )
-            val parsed = forecastJson.decodeFromString<KmaApiResponse<FcstItem>>(response)
+            val parsed: KmaApiResponse<FcstItem> = forecastJson.decodeFromString<KmaApiResponse<FcstItem>>(response)
             check(parsed.response.header.resultCode == "00") {
                 "KMA vilage fcst error: ${parsed.response.header.resultMsg}"
             }
