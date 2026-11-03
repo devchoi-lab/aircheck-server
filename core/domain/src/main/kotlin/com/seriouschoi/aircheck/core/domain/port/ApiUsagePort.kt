@@ -1,7 +1,6 @@
 package com.seriouschoi.aircheck.core.domain.port
 
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 /**
  * API 사용량 추적 포트
