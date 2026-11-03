@@ -8,7 +8,7 @@ package com.seriouschoi.aircheck.core.domain.model
  * - midTaForecast: 중기기온예보 (3~10일 최저·최고기온). 조회 실패 시 null.
  */
 data class KmaWeatherResponse(
-    val shortForecast: ShortForecast,
+    val shortForecast: ShortForecast?,
     val midLandForecast: MidLandForecast?,
     val midTaForecast: MidTaForecast?
 )
