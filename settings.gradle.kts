@@ -4,7 +4,6 @@ rootProject.name = "aircheck-server"
 include(":core:domain")
 include(":core:service")
 include(":core:airkorea-adapter")
-include(":core:openmeteo-adapter")
 include(":core:kma-adapter")
 include(":core:persistence-adapter")
 include(":core:bjd-matcher")
