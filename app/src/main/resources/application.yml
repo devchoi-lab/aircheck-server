@@ -74,6 +74,7 @@ management:
       show-details: always
 
 logging:
+  config: classpath:logback-spring.xml  # logback 설정 파일 명시 (src/main/resources/logback-spring.xml)
   level:
     com.seriouschoi.aircheck: DEBUG
     org.hibernate.SQL: DEBUG
