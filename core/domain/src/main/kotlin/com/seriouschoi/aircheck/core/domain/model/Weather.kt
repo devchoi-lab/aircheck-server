@@ -5,16 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 import kotlinx.serialization.Serializable
 import java.time.Instant
 
-/**
- * 날씨 응답 (앱으로 전달)
- */
-@Serializable
-data class WeatherResponse(
-    val current: CurrentWeather,
-    val hourlyForecast: List<HourlyForecast>,
-    val dailyForecast: List<DailyForecast> = emptyList(),
-    val midTermForecast: List<MidTermForecast> = emptyList()
-)
 
 @Schema(description = "현재 날씨")
 @Serializable
@@ -65,19 +55,6 @@ data class DailyForecast(
     val pmWeatherCondition: WeatherCondition
 )
 
-/**
- * 중기예보 (3~10일)
- */
-@Serializable
-data class MidTermForecast(
-    val date: String,              // YYYY-MM-DD
-    val dayOfWeek: String,         // 월, 화, 수...
-    val minTemp: Int,              // 최저기온
-    val maxTemp: Int,              // 최고기온
-    val amPrecipProb: Int,         // 오전 강수확률
-    val pmPrecipProb: Int,         // 오후 강수확률
-    val weatherDescription: String // 날씨 설명 (맑음, 구름많음 등)
-)
 
 @Serializable
 enum class WeatherCondition(val label: String, val emoji: String) {
@@ -110,6 +87,6 @@ enum class WeatherCondition(val label: String, val emoji: String) {
 }
 
 data class CombinedWeatherResult(
-    val weather: WeatherResponse?,
+    val kmaWeather: KmaWeatherResponse?,
     val airQuality: AirQualityResponse?
 )

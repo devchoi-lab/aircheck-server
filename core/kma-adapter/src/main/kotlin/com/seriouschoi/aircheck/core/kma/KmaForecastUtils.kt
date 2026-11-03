@@ -8,9 +8,12 @@ import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
 import com.seriouschoi.aircheck.core.kma.dto.FcstItem
 import com.seriouschoi.aircheck.core.kma.dto.NcstItem
 import kotlinx.serialization.json.Json
+import mu.KotlinLogging
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 internal val KST_ZONE: ZoneId = ZoneId.of("Asia/Seoul")
 
@@ -19,7 +22,7 @@ internal val forecastJson = Json {
     coerceInputValues = true
 }
 
-private val usageLogger = mu.KotlinLogging.logger {}
+private val usageLogger = KotlinLogging.logger {}
 
 internal fun <T> runWithUsage(apiType: String, apiUsagePort: ApiUsagePort?, block: () -> T): T {
     val startTime = System.currentTimeMillis()
@@ -113,7 +116,7 @@ internal fun parseExtendedHourlyForecast(items: List<FcstItem>): List<HourlyFore
                 "REH" -> humidity    = item.fcstValue.toIntOrNull()    ?: 50
             }
         }
-        val kstDateTime = LocalDateTime.parse(
+        val kstDateTime: LocalDateTime = LocalDateTime.parse(
             "${fcstDate}${fcstTime}", DateTimeFormatter.ofPattern("yyyyMMddHHmm")
         )
         HourlyForecast(
@@ -130,23 +133,48 @@ internal fun parseExtendedHourlyForecast(items: List<FcstItem>): List<HourlyFore
 }
 
 internal fun parseDailyForecast(items: List<FcstItem>): List<DailyForecast> {
-    val dayOfWeekFmt = DateTimeFormatter.ofPattern("E", java.util.Locale.KOREAN)
+    val dayOfWeekFmt = DateTimeFormatter.ofPattern("E", Locale.KOREAN)
     val dateFmt = DateTimeFormatter.ofPattern("yyyyMMdd")
     return items.groupBy { it.fcstDate }.map { (date, dateItems) ->
-        var minTemp = Double.MAX_VALUE; var maxTemp = Double.MIN_VALUE
-        var amPop = 0; var pmPop = 0; var amSky = 1; var pmSky = 1; var amPty = 0; var pmPty = 0
+        var minTemp = Double.MAX_VALUE
+        var maxTemp = Double.MIN_VALUE
+        var amPop = 0; var pmPop = 0
+        var amSky = 1; var pmSky = 1
+        var amPty = 0; var pmPty = 0
         dateItems.forEach { item ->
             val isAm = (item.fcstTime.substring(0, 2).toIntOrNull() ?: 0) < 12
             when (item.category) {
                 "TMN" -> minTemp = item.fcstValue.toDoubleOrNull() ?: minTemp
                 "TMX" -> maxTemp = item.fcstValue.toDoubleOrNull() ?: maxTemp
-                "TMP" -> { val t = item.fcstValue.toDoubleOrNull() ?: 0.0; if (t < minTemp) minTemp = t; if (t > maxTemp) maxTemp = t }
-                "POP" -> { val p = item.fcstValue.toIntOrNull() ?: 0; if (isAm) amPop = maxOf(amPop, p) else pmPop = maxOf(pmPop, p) }
-                "SKY" -> { val s = item.fcstValue.toIntOrNull() ?: 1; if (isAm) amSky = s else pmSky = s }
-                "PTY" -> { val p = item.fcstValue.toIntOrNull() ?: 0; if (isAm) amPty = p else pmPty = p }
+                "TMP" -> {
+                    val t = item.fcstValue.toDoubleOrNull() ?: 0.0
+                    if (t < minTemp) minTemp = t
+                    if (t > maxTemp) maxTemp = t
+                }
+                "POP" -> {
+                    val p = item.fcstValue.toIntOrNull() ?: 0
+                    if (isAm)
+                        amPop = maxOf(amPop, p)
+                    else
+                        pmPop = maxOf(pmPop, p)
+                }
+                "SKY" -> {
+                    val s = item.fcstValue.toIntOrNull() ?: 1
+                    if (isAm)
+                        amSky = s
+                    else
+                        pmSky = s
+                }
+                "PTY" -> {
+                    val p = item.fcstValue.toIntOrNull() ?: 0
+                    if (isAm)
+                        amPty = p
+                    else
+                        pmPty = p
+                }
             }
         }
-        val localDate = java.time.LocalDate.parse(date, dateFmt)
+        val localDate = LocalDate.parse(date, dateFmt)
         DailyForecast(
             date = "${localDate.year}-${String.format("%02d", localDate.monthValue)}-${String.format("%02d", localDate.dayOfMonth)}",
             dayOfWeek = localDate.format(dayOfWeekFmt),

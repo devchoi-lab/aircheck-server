@@ -21,7 +21,6 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:service"))
     implementation(project(":core:airkorea-adapter"))
-    implementation(project(":core:openmeteo-adapter"))
     implementation(project(":core:bjd-matcher"))
     implementation(project(":core:kma-adapter"))
     implementation(project(":core:persistence-adapter"))

@@ -2,7 +2,7 @@ package com.seriouschoi.aircheck.feature.weather
 
 import com.seriouschoi.aircheck.core.domain.model.AirQualityResponse
 import com.seriouschoi.aircheck.core.domain.model.CombinedWeatherResult
-import com.seriouschoi.aircheck.core.domain.model.WeatherResponse
+import com.seriouschoi.aircheck.core.domain.model.KmaWeatherResponse
 import com.seriouschoi.aircheck.core.domain.usecase.GetAirQualityUseCase
 import com.seriouschoi.aircheck.core.domain.usecase.GetCombinedWeatherUseCase
 import com.seriouschoi.aircheck.core.domain.usecase.GetWeatherForecastUseCase
@@ -63,7 +63,7 @@ class WeatherController(
         ApiResponse(
             responseCode = "200",
             description = "조회 성공",
-            content = [Content(schema = Schema(implementation = WeatherResponse::class))]
+            content = [Content(schema = Schema(implementation = KmaWeatherResponse::class))]
         )
     ])
     @GetMapping("/weather/forecast")
@@ -72,7 +72,7 @@ class WeatherController(
         @RequestParam lat: Double,
         @Parameter(description = "경도", example = "126.9780")
         @RequestParam lng: Double
-    ): ResponseEntity<WeatherResponse?> =
+    ): ResponseEntity<KmaWeatherResponse?> =
         ResponseEntity.ok(getWeatherForecastUseCase.execute(lat, lng))
 
     @Operation(
@@ -118,7 +118,7 @@ class WeatherController(
                     BatchWeatherItem(
                         lat = location.lat,
                         lng = location.lng,
-                        weather = result.weather,
+                        kmaWeather = result.kmaWeather,
                         airQuality = result.airQuality
                     )
                 }
@@ -142,6 +142,6 @@ data class LocationRequest(
 data class BatchWeatherItem(
     val lat: Double,
     val lng: Double,
-    val weather: WeatherResponse?,
+    val kmaWeather: KmaWeatherResponse?,
     val airQuality: AirQualityResponse?
 )

@@ -1,0 +1,37 @@
+potential-bugs:
+  active: false
+
+style:
+  active: true
+  MagicNumber:
+    active: false
+  MaxLineLength:
+    active: false
+  ReturnCount:
+    active: false
+  WildcardImport:
+    active: false
+  UnusedImports:
+    active: true
+  UnusedPrivateMember:
+    active: true
+  UnusedParameter:
+    active: false
+
+coroutines:
+  active: false
+
+comments:
+  active: false
+
+complexity:
+  active: false
+
+exceptions:
+  active: false
+
+naming:
+  active: false
+
+performance:
+  active: false

@@ -3,7 +3,7 @@ package com.seriouschoi.aircheck.core.domain.model
 /**
  * 중기육상예보 (3~10일, getMidLandFcst API 응답)
  *
- * doCode → landRegId 매핑 후 조회. UseCase에서 MidTaForecast와 조합해 MidTermForecast 생성.
+ * doCode → landRegId 매핑 후 조회. KmaWeatherResponse에 포함되어 반환.
  */
 data class MidLandForecast(
     val days: List<MidLandForecastDay>

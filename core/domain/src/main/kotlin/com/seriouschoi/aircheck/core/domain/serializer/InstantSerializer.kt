@@ -7,7 +7,6 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import java.time.Instant
-import java.time.format.DateTimeFormatter
 
 /**
  * Instant ↔ ISO-8601 UTC String 변환 Serializer
