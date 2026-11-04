@@ -43,7 +43,11 @@ class AirKoreaAdapter(
             .map { it.key to it.value }
     }
 
-    override fun getAirQuality(lat: Double, lng: Double): AirQualityResponse? {
+    override fun getAirQuality(lat: Double, lng: Double): Result<AirQualityResponse?> =
+        Result.runCatching { fetchAirQuality(lat, lng) }
+            .onFailure { log.error("대기질 조회 실패 (lat=$lat, lng=$lng)", it) }
+
+    private fun fetchAirQuality(lat: Double, lng: Double): AirQualityResponse? {
         val nearbyStations = findNearestStations(lat, lng, limit = 5)
         if (nearbyStations.isEmpty()) return null
         
