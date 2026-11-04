@@ -88,5 +88,24 @@ enum class WeatherCondition(val label: String, val emoji: String) {
 
 data class CombinedWeatherResult(
     val kmaWeather: KmaWeatherResponse?,
-    val airQuality: AirQualityResponse?
+    val airQuality: AirQualityResponse?,
+    val errors: List<DataError> = emptyList()
 )
+
+/**
+ * CombinedWeatherResult 전용 에러 정보.
+ * errorCode: 클라이언트가 UI 분기에 사용.
+ * errorId: 서버 로그에서 grep으로 추적 가능한 UUID.
+ */
+data class DataError(
+    val errorCode: DataErrorCode,
+    val errorId: String
+)
+
+/**
+ * CombinedWeatherResult 전용 에러코드.
+ */
+enum class DataErrorCode {
+    API_UNAVAILABLE,    // 외부 API 호출 실패
+    LOCATION_NOT_FOUND  // 좌표 → BJD 변환 실패 (한국 외 지역 등)
+}

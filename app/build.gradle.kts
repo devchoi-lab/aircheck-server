@@ -45,7 +45,7 @@ dependencies {
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
     
     // OpenAPI / Swagger UI
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
     
     // Database
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client:3.3.3")

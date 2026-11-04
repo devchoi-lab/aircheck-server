@@ -16,6 +16,6 @@ class GetAirQualityUseCase @Inject constructor(
         val location = bjdPort.locate(lat, lng)
         val normLat = location?.lat ?: lat
         val normLng = location?.lng ?: lng
-        return airQualityPort.getAirQuality(normLat, normLng)
+        return airQualityPort.getAirQuality(normLat, normLng).getOrNull()
     }
 }

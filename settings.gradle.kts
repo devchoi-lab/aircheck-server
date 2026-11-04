@@ -16,6 +16,7 @@ include(":feature:admin")
 
 // Util modules (헥사고날 계층과 무관한 기술적 유틸리티)
 include(":util:kma-region")
+include(":util:logging")
 
 // App (composition root)
 include(":app")
