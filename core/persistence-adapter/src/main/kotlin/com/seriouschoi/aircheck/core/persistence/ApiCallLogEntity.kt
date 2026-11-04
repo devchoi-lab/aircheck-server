@@ -3,6 +3,7 @@ package com.seriouschoi.aircheck.core.persistence
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
+
 @Entity
 @Table(
     name = "api_call_log",
@@ -17,8 +18,7 @@ class ApiCallLogEntity(
     val id: Long? = null,
     
     @Column(nullable = false, length = 50)
-    @Enumerated(EnumType.STRING)
-    val apiType: ApiType,
+    val apiType: String,
     
     @Column(nullable = false)
     val calledAt: LocalDateTime = LocalDateTime.now(),

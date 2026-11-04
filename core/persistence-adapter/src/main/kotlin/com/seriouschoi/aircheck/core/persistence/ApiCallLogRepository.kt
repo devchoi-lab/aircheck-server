@@ -17,7 +17,7 @@ interface ApiCallLogRepository : JpaRepository<ApiCallLogEntity, Long> {
     
     // API 타입별 + 기간별 조회
     fun findByApiTypeAndCalledAtBetween(
-        apiType: ApiType,
+        apiType: String,
         start: LocalDateTime,
         end: LocalDateTime
     ): List<ApiCallLogEntity>
@@ -28,7 +28,7 @@ interface ApiCallLogRepository : JpaRepository<ApiCallLogEntity, Long> {
         WHERE e.apiType = :apiType 
         AND e.calledAt >= :startOfDay
     """)
-    fun countTodayByApiType(apiType: ApiType, startOfDay: LocalDateTime): Long
+    fun countTodayByApiType(apiType: String, startOfDay: LocalDateTime): Long
     
     // 시간대별 통계 (네이티브 쿼리)
     @Query("""
