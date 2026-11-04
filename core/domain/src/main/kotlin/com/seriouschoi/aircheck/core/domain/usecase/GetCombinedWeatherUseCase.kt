@@ -3,6 +3,7 @@ package com.seriouschoi.aircheck.core.domain.usecase
 import com.seriouschoi.aircheck.core.domain.model.CombinedWeatherResult
 import com.seriouschoi.aircheck.core.domain.model.DataError
 import com.seriouschoi.aircheck.core.domain.model.DataErrorCode
+import com.seriouschoi.aircheck.core.domain.model.DataResult
 import com.seriouschoi.aircheck.core.domain.port.AirQualityPort
 import com.seriouschoi.aircheck.core.domain.port.BjdPort
 import com.seriouschoi.aircheck.core.domain.port.KmaWeatherPort
@@ -21,49 +22,45 @@ class GetCombinedWeatherUseCase @Inject constructor(
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun execute(lat: Double, lng: Double): CombinedWeatherResult {
-        val errors = mutableListOf<DataError>()
         val location = bjdPort.locate(lat, lng)
 
-        if (location == null) {
-            errors.add(DataError(
+        val kmaWeather = if (location == null) {
+            DataResult.Failure(DataError(
                 errorCode = DataErrorCode.LOCATION_NOT_FOUND,
                 errorId = log.errorWithId("위치 조회 실패 (lat=$lat, lng=$lng)")
             ))
+        } else {
+            val result = kmaWeatherPort.getWeather(location)
+            if (result.isSuccess) {
+                DataResult.Success(result.getOrThrow())
+            } else {
+                DataResult.Failure(DataError(
+                    errorCode = DataErrorCode.API_UNAVAILABLE,
+                    errorId = log.errorWithId("KMA 날씨 조회 실패", result.exceptionOrNull())
+                ))
+            }
         }
 
-        val kmaWeather = location?.let { kmaWeatherPort.getWeather(it).getOrNull() }
-        if (kmaWeather?.shortForecast == null) {
-            errors.add(DataError(
-                errorCode = DataErrorCode.API_UNAVAILABLE,
-                errorId = log.errorWithId("KMA 단기예보 조회 실패")
-            ))
-        }
-        if (kmaWeather?.midTaForecast == null) {
-            errors.add(DataError(
-                errorCode = DataErrorCode.API_UNAVAILABLE,
-                errorId = log.errorWithId("KMA 중기기온 조회 실패")
-            ))
-        }
-        if (kmaWeather?.midLandForecast == null) {
-            errors.add(DataError(
-                errorCode = DataErrorCode.API_UNAVAILABLE,
-                errorId = log.errorWithId("KMA 중기육상예보 조회 실패")
-            ))
-        }
-
-        val airResult = airQualityPort.getAirQuality(location?.lat ?: lat, location?.lng ?: lng)
-        val airQuality = airResult.getOrNull()
-        if (airResult.isFailure) {
-            errors.add(DataError(
-                errorCode = DataErrorCode.API_UNAVAILABLE,
-                errorId = log.errorWithId("대기질 조회 실패 (lat=$lat, lng=$lng)", airResult.exceptionOrNull())
-            ))
+        val airQuality = run {
+            val result = airQualityPort.getAirQuality(location?.lat ?: lat, location?.lng ?: lng)
+            if (result.isSuccess && result.getOrNull() != null) {
+                DataResult.Success(result.getOrThrow()!!)
+            } else if (result.isFailure) {
+                DataResult.Failure(DataError(
+                    errorCode = DataErrorCode.API_UNAVAILABLE,
+                    errorId = log.errorWithId("대기질 조회 실패 (lat=$lat, lng=$lng)", result.exceptionOrNull())
+                ))
+            } else {
+                DataResult.Failure(DataError(
+                    errorCode = DataErrorCode.API_UNAVAILABLE,
+                    errorId = log.errorWithId("대기질 데이터 없음 (lat=$lat, lng=$lng)")
+                ))
+            }
         }
 
         return CombinedWeatherResult(
             kmaWeather = kmaWeather,
-            airQuality = airQuality,
-            errors = errors
+            airQuality = airQuality
         )
     }
 }

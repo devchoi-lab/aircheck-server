@@ -118,8 +118,7 @@ class WeatherController(
                     BatchWeatherItem(
                         lat = location.lat,
                         lng = location.lng,
-                        kmaWeather = result.kmaWeather,
-                        airQuality = result.airQuality
+                        result = result
                     )
                 }
             }.awaitAll()
@@ -142,6 +141,5 @@ data class LocationRequest(
 data class BatchWeatherItem(
     val lat: Double,
     val lng: Double,
-    val kmaWeather: KmaWeatherResponse?,
-    val airQuality: AirQualityResponse?
+    val result: CombinedWeatherResult
 )

@@ -86,14 +86,24 @@ enum class WeatherCondition(val label: String, val emoji: String) {
     }
 }
 
+/**
+ * 개별 데이터 조회 결과. 성공 시 data, 실패 시 error를 가진다.
+ * Jackson이 concrete 타입 기준으로 직렬화하므로 별도 설정 불필요.
+ * - Success → {"data": ...}
+ * - Failure → {"error": {...}}
+ */
+sealed class DataResult<out T> {
+    data class Success<T>(val data: T) : DataResult<T>()
+    data class Failure(val error: DataError) : DataResult<Nothing>()
+}
+
 data class CombinedWeatherResult(
-    val kmaWeather: KmaWeatherResponse?,
-    val airQuality: AirQualityResponse?,
-    val errors: List<DataError> = emptyList()
+    val kmaWeather: DataResult<KmaWeatherResponse>,
+    val airQuality: DataResult<AirQualityResponse>
 )
 
 /**
- * CombinedWeatherResult 전용 에러 정보.
+ * 에러 정보.
  * errorCode: 클라이언트가 UI 분기에 사용.
  * errorId: 서버 로그에서 grep으로 추적 가능한 UUID.
  */
@@ -102,9 +112,6 @@ data class DataError(
     val errorId: String
 )
 
-/**
- * CombinedWeatherResult 전용 에러코드.
- */
 enum class DataErrorCode {
     API_UNAVAILABLE,    // 외부 API 호출 실패
     LOCATION_NOT_FOUND  // 좌표 → BJD 변환 실패 (한국 외 지역 등)
