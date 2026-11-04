@@ -16,7 +16,7 @@ class ApiCallLogAdapter(
     @Transactional
     override fun recordSuccess(apiType: String, responseTimeMs: Long) {
         val entity = ApiCallLogEntity(
-            apiType = ApiType.valueOf(apiType),
+            apiType = apiType,
             success = true,
             responseTimeMs = responseTimeMs
         )
@@ -26,7 +26,7 @@ class ApiCallLogAdapter(
     @Transactional
     override fun recordFailure(apiType: String, errorMessage: String?) {
         val entity = ApiCallLogEntity(
-            apiType = ApiType.valueOf(apiType),
+            apiType = apiType,
             success = false,
             errorMessage = errorMessage?.take(500)
         )
@@ -35,9 +35,8 @@ class ApiCallLogAdapter(
     
     @Transactional(readOnly = true)
     override fun getTodayCount(apiType: String): Long {
-        val type = ApiType.valueOf(apiType)
         val startOfDay = LocalDate.now().atStartOfDay()
-        return repository.countTodayByApiType(type, startOfDay)
+        return repository.countTodayByApiType(apiType, startOfDay)
     }
     
     @Transactional(readOnly = true)
@@ -61,7 +60,7 @@ class ApiCallLogAdapter(
                 val successItems = items.filter { it.success }
                 
                 ApiUsageStats(
-                    apiType = apiType.name,
+                    apiType = apiType,
                     date = date,
                     callCount = items.size.toLong(),
                     successCount = successItems.size.toLong(),
