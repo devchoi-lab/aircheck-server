@@ -13,7 +13,41 @@
         </encoder>
     </appender>
 
-    <!-- 전체 로그 파일 (INFO 이상) -->
+    <!-- 로컬 전체 로그 (INFO 이상, 3일 보관, 100MB 상한) -->
+    <appender name="FILE_LOCAL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/app.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/app.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>3</maxHistory>
+            <totalSizeCap>100MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 로컬 에러 로그 (ERROR만, 3일 보관, 50MB 상한) -->
+    <appender name="ERROR_FILE_LOCAL" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/error.log</file>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/error.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>3</maxHistory>
+            <totalSizeCap>50MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 운영 전체 로그 (INFO 이상, 30일 보관, 500MB 상한) -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_DIR}/app.log</file>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
@@ -29,7 +63,7 @@
         </encoder>
     </appender>
 
-    <!-- 에러 로그 파일 (ERROR만) -->
+    <!-- 운영 에러 로그 (ERROR만, 90일 보관, 100MB 상한) -->
     <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_DIR}/error.log</file>
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
@@ -47,15 +81,17 @@
         </encoder>
     </appender>
 
-    <!-- 로컬 개발: 콘솔만 -->
+    <!-- 로컬 개발: 파일 + 콘솔 (3일 보관) -->
     <springProfile name="local,default">
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE_LOCAL"/>
+            <appender-ref ref="ERROR_FILE_LOCAL"/>
         </root>
         <logger name="com.seriouschoi.aircheck" level="DEBUG"/>
     </springProfile>
 
-    <!-- 운영/스테이징: 파일 + 콘솔 -->
+    <!-- 운영/스테이징: 파일 + 콘솔 (30일/90일 보관) -->
     <springProfile name="prod,staging">
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
