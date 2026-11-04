@@ -114,5 +114,6 @@ data class DataError(
 
 enum class DataErrorCode {
     API_UNAVAILABLE,    // 외부 API 호출 실패
-    LOCATION_NOT_FOUND  // 좌표 → BJD 변환 실패 (한국 외 지역 등)
+    LOCATION_NOT_FOUND, // 좌표 → BJD 변환 실패 (한국 외 지역 등)
+    NO_DATA             // API 호출은 성공했지만 데이터 없음 (예: 근처 측정소 없음)
 }

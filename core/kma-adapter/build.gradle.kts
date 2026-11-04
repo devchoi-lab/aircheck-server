@@ -7,6 +7,7 @@ plugins {
 dependencies {
     implementation(project(":core:domain"))
     implementation(project(":util:kma-region"))
+    implementation(project(":util:logging"))
 
     // Spring
     implementation("org.springframework.boot:spring-boot-starter-web")

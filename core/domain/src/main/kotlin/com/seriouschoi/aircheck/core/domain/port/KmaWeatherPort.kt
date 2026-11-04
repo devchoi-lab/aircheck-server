@@ -10,9 +10,8 @@ import com.seriouschoi.aircheck.core.domain.model.KmaWeatherResponse
  */
 interface KmaWeatherPort {
     /**
-     * 초단기실황 + 단기예보 + 중기예보를 조합하여 반환. 실패 시 Result.failure.
-     *
-     * 중기예보(midLandForecast, midTaForecast)는 조회 실패 시 null로 반환됨.
+     * 초단기실황 + 단기예보 + 중기예보를 조합하여 반환.
+     * 각 예보는 개별 DataResult로 성공/실패를 가지며, 하나 실패해도 나머지는 유효하다.
      */
-    fun getWeather(location: BjdLocation): Result<KmaWeatherResponse>
+    fun getWeather(location: BjdLocation): KmaWeatherResponse
 }

@@ -14,6 +14,6 @@ class GetWeatherForecastUseCase @Inject constructor(
 ) {
     fun execute(lat: Double, lng: Double): KmaWeatherResponse? {
         val location = bjdPort.locate(lat, lng) ?: return null
-        return kmaWeatherPort.getWeather(location).getOrNull()
+        return kmaWeatherPort.getWeather(location)
     }
 }

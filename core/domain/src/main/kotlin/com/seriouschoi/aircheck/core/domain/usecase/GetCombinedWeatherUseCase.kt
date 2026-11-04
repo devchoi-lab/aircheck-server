@@ -40,15 +40,7 @@ class GetCombinedWeatherUseCase @Inject constructor(
                 errorId = log.errorWithId("위치 조회 실패 (lat=$lat, lng=$lng)")
             ))
         }
-        val result = kmaWeatherPort.getWeather(location)
-        return if (result.isSuccess) {
-            DataResult.Success(result.getOrThrow())
-        } else {
-            DataResult.Failure(DataError(
-                errorCode = DataErrorCode.API_UNAVAILABLE,
-                errorId = log.errorWithId("KMA 날씨 조회 실패", result.exceptionOrNull())
-            ))
-        }
+        return DataResult.Success(kmaWeatherPort.getWeather(location))
     }
 
     private fun fetchAirQuality(location: BjdLocation?, lat: Double, lng: Double): DataResult<AirQualityResponse> {
@@ -62,7 +54,7 @@ class GetCombinedWeatherUseCase @Inject constructor(
             ))
         } else {
             DataResult.Failure(DataError(
-                errorCode = DataErrorCode.API_UNAVAILABLE,
+                errorCode = DataErrorCode.NO_DATA,
                 errorId = log.errorWithId("대기질 데이터 없음 (lat=$lat, lng=$lng)")
             ))
         }

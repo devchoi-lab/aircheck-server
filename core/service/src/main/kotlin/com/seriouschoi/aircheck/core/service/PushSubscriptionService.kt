@@ -5,6 +5,7 @@ import com.seriouschoi.aircheck.core.domain.port.PushSubscriptionUseCase
 import com.seriouschoi.aircheck.core.domain.port.PushNotificationPort
 import com.seriouschoi.aircheck.core.domain.port.PushSubscriptionData
 import com.seriouschoi.aircheck.core.domain.port.PushSubscriptionPort
+import com.seriouschoi.aircheck.core.domain.model.DataResult
 import com.seriouschoi.aircheck.core.domain.usecase.GetAirQualityUseCase
 import com.seriouschoi.aircheck.core.domain.usecase.GetWeatherForecastUseCase
 import org.slf4j.LoggerFactory
@@ -70,7 +71,7 @@ class PushSubscriptionService(
                 val weather = getWeatherForecastUseCase.execute(sub.latitude, sub.longitude)
                 val air = getAirQualityUseCase.execute(sub.latitude, sub.longitude)
 
-                val current = weather?.shortForecast?.current
+                val current = (weather?.shortForecast as? DataResult.Success)?.data?.current
                 if (current != null) {
                     val recommendation = buildRecommendation(current.temperature, air?.pm25)
                     val pm25Status = air?.pm25?.let { getPm25Status(it) } ?: "❓ 알 수 없음"
