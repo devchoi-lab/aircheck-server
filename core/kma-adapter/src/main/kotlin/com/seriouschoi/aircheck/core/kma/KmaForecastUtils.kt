@@ -176,7 +176,7 @@ internal fun parseDailyForecast(items: List<FcstItem>): List<DailyForecast> {
         }
         val localDate = LocalDate.parse(date, dateFmt)
         DailyForecast(
-            date = "${localDate.year}-${String.format("%02d", localDate.monthValue)}-${String.format("%02d", localDate.dayOfMonth)}",
+            date = localDate,
             dayOfWeek = localDate.format(dayOfWeekFmt),
             minTemp = if (minTemp == Double.MAX_VALUE) 0.0 else minTemp,
             maxTemp = if (maxTemp == Double.MIN_VALUE) 0.0 else maxTemp,

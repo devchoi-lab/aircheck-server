@@ -1,7 +1,9 @@
 package com.seriouschoi.aircheck.core.domain.model
 
+import com.seriouschoi.aircheck.core.domain.serializer.InstantSerializer
 import io.swagger.v3.oas.annotations.media.Schema
 import kotlinx.serialization.Serializable
+import java.time.Instant
 
 /**
  * 측정기기 상태 플래그.
@@ -47,7 +49,8 @@ data class AirQualityResponse(
     val sidoName: String,
 
     @Schema(description = "측정 시간 (UTC, ISO 8601)", example = "2024-03-17T12:00:00Z")
-    val dataTime: String,
+    @Serializable(with = InstantSerializer::class)
+    val dataTime: Instant,
 
     // 미세먼지
     @Schema(description = "미세먼지(PM10) 밀도 (μg/m³)", example = "45")

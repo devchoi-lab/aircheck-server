@@ -1,9 +1,11 @@
 package com.seriouschoi.aircheck.core.domain.model
 
 import com.seriouschoi.aircheck.core.domain.serializer.InstantSerializer
+import com.seriouschoi.aircheck.core.domain.serializer.LocalDateSerializer
 import io.swagger.v3.oas.annotations.media.Schema
 import kotlinx.serialization.Serializable
 import java.time.Instant
+import java.time.LocalDate
 
 
 @Schema(description = "현재 날씨")
@@ -45,7 +47,8 @@ data class HourlyForecast(
  */
 @Serializable
 data class DailyForecast(
-    val date: String,              // YYYY-MM-DD
+    @Serializable(with = LocalDateSerializer::class)
+    val date: LocalDate,           // KST 기준 날짜 (JSON: YYYY-MM-DD)
     val dayOfWeek: String,         // 월, 화, 수...
     val minTemp: Double,           // 최저기온
     val maxTemp: Double,           // 최고기온
