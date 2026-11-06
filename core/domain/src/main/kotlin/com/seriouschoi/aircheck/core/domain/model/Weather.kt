@@ -47,8 +47,9 @@ data class HourlyForecast(
  */
 @Serializable
 data class DailyForecast(
+    @Schema(description = "예보 날짜 (KST 기준, YYYY-MM-DD). 최저/최고기온과 오전/오후 구분도 KST 하루 기준", example = "2026-03-20")
     @Serializable(with = LocalDateSerializer::class)
-    val date: LocalDate,           // KST 기준 날짜 (JSON: YYYY-MM-DD)
+    val date: LocalDate,
     val dayOfWeek: String,         // 월, 화, 수...
     val minTemp: Double,           // 최저기온
     val maxTemp: Double,           // 최고기온

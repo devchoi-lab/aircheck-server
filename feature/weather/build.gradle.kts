@@ -16,4 +16,7 @@ dependencies {
     
     // OpenAPI / Swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+
+    // Test
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
