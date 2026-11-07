@@ -1,6 +1,9 @@
-package com.seriouschoi.aircheck.feature.weather
+package com.seriouschoi.aircheck.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.seriouschoi.aircheck.core.domain.model.AirQualityResponse
 import com.seriouschoi.aircheck.core.domain.model.DailyForecast
 import com.seriouschoi.aircheck.core.domain.model.WeatherCondition
@@ -9,17 +12,17 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.SpringBootConfiguration
 import org.springframework.boot.test.autoconfigure.json.JsonTest
+import org.springframework.context.annotation.Import
 import java.time.Instant
 import java.time.LocalDate
 
 /**
- * 컨트롤러 응답은 Jackson(Spring Boot 기본 설정)으로 직렬화된다.
- * 시각 타입 변경 후에도 JSON 출력 형식이 기존과 같은지 고정한다.
- *
- * 주의: Spring Boot 기본 Jackson 설정 기준이다. 앱에서 Jackson 설정을 바꾸면 이 테스트가 반영하지 못한다.
+ * 응답 JSON의 시각 형식 테스트.
+ * 형식은 [InstantJsonSerializer], [LocalDateJsonSerializer]가 정한다.
  */
 @JsonTest
-class WeatherResponseJsonTest(@Autowired private val objectMapper: ObjectMapper) {
+@Import(InstantJsonSerializer::class, LocalDateJsonSerializer::class)
+class ResponseJsonTest(@Autowired private val objectMapper: ObjectMapper) {
 
     @SpringBootConfiguration
     class TestConfig
@@ -56,5 +59,21 @@ class WeatherResponseJsonTest(@Autowired private val objectMapper: ObjectMapper)
         val node = objectMapper.readTree(objectMapper.writeValueAsString(forecast))
 
         assertEquals("2026-03-20", node["date"].asText())
+    }
+
+    @Test
+    fun `Jackson 타임스탬프 설정이 켜져 있어도 문자열 형식이 유지된다`() {
+        // Boot 기본 설정에 기대지 않고 직렬화기가 형식을 정한다는 것을 확인
+        val mapper = ObjectMapper()
+            .registerModule(JavaTimeModule())
+            .registerModule(
+                SimpleModule()
+                    .addSerializer(Instant::class.java, InstantJsonSerializer())
+                    .addSerializer(LocalDate::class.java, LocalDateJsonSerializer())
+            )
+            .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+
+        assertEquals("\"2026-03-20T00:00:00Z\"", mapper.writeValueAsString(Instant.parse("2026-03-20T00:00:00Z")))
+        assertEquals("\"2026-03-20\"", mapper.writeValueAsString(LocalDate.of(2026, 3, 20)))
     }
 }
