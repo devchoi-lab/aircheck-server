@@ -49,6 +49,9 @@ dependencies {
     
     // Database
     runtimeOnly("org.mariadb.jdbc:mariadb-java-client:3.3.3")
+
+    // Test
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
 tasks.getByName<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {

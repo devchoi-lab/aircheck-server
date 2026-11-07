@@ -130,7 +130,7 @@ interface KmaMidApi {
         /**
          * 발표시각 (yyyyMMddHH00, KST). 하루 2회 고정: 0600, 1800
          * 예: 202410230600 (2024-10-23 06:00 발표)
-         * 계산: [KmaAdapter.calculateMidFcstTmFc] 참조
+         * 계산: [calculateMidFcstBase], [toMidFcstTmFc] 참조
          */
         @RequestParam("tmFc") tmFc: String
     ): String
@@ -162,7 +162,7 @@ interface KmaMidApi {
         /**
          * 발표시각 (yyyyMMddHH00, KST). 하루 2회 고정: 0600, 1800
          * 예: 202410230600 (2024-10-23 06:00 발표)
-         * 계산: [KmaAdapter.calculateMidFcstTmFc] 참조
+         * 계산: [calculateMidFcstBase], [toMidFcstTmFc] 참조
          */
         @RequestParam("tmFc") tmFc: String
     ): String
