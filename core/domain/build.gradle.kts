@@ -1,12 +1,8 @@
 plugins {
     kotlin("jvm")
-    kotlin("plugin.serialization")
 }
 
 dependencies {
-    // Kotlin
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-
     // OpenAPI Schema annotations
     compileOnly("io.swagger.core.v3:swagger-annotations:2.2.19")
 
@@ -15,8 +11,4 @@ dependencies {
 
     // 로깅 유틸리티 (errorWithId 확장함수 포함)
     implementation(project(":util:logging"))
-
-    // Test
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

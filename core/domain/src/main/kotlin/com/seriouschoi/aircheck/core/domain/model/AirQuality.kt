@@ -1,8 +1,6 @@
 package com.seriouschoi.aircheck.core.domain.model
 
-import com.seriouschoi.aircheck.core.domain.serializer.InstantSerializer
 import io.swagger.v3.oas.annotations.media.Schema
-import kotlinx.serialization.Serializable
 import java.time.Instant
 
 /**
@@ -40,7 +38,6 @@ enum class MeasurementFlag(val apiValue: String) {
  * 이 경우 pm10Station/pm25Station에 해당 측정소 정보가 표시됩니다.
  */
 @Schema(description = "대기질 정보")
-@Serializable
 data class AirQualityResponse(
     @Schema(description = "메인 측정소 이름", example = "중구")
     val stationName: String,
@@ -49,7 +46,6 @@ data class AirQualityResponse(
     val sidoName: String,
 
     @Schema(description = "측정 시간 (UTC, ISO 8601)", example = "2024-03-17T12:00:00Z")
-    @Serializable(with = InstantSerializer::class)
     val dataTime: Instant,
 
     // 미세먼지

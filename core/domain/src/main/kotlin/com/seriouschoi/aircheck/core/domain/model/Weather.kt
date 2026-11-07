@@ -1,15 +1,11 @@
 package com.seriouschoi.aircheck.core.domain.model
 
-import com.seriouschoi.aircheck.core.domain.serializer.InstantSerializer
-import com.seriouschoi.aircheck.core.domain.serializer.LocalDateSerializer
 import io.swagger.v3.oas.annotations.media.Schema
-import kotlinx.serialization.Serializable
 import java.time.Instant
 import java.time.LocalDate
 
 
 @Schema(description = "현재 날씨")
-@Serializable
 data class CurrentWeather(
     @Schema(description = "기온 (℃)", example = "20.7")
     val temperature: Double,
@@ -29,9 +25,7 @@ data class CurrentWeather(
     val isDay: Boolean
 )
 
-@Serializable
 data class HourlyForecast(
-    @Serializable(with = InstantSerializer::class)
     val time: Instant,
     val hour: Int,  // KST 기준 시간 (표시용)
     val temperature: Double,
@@ -45,10 +39,8 @@ data class HourlyForecast(
 /**
  * 일별 예보 (단기예보 3일)
  */
-@Serializable
 data class DailyForecast(
     @Schema(description = "예보 날짜 (KST 기준, YYYY-MM-DD). 최저/최고기온과 오전/오후 구분도 KST 하루 기준", example = "2026-03-20")
-    @Serializable(with = LocalDateSerializer::class)
     val date: LocalDate,
     val dayOfWeek: String,         // 월, 화, 수...
     val minTemp: Double,           // 최저기온
@@ -60,7 +52,6 @@ data class DailyForecast(
 )
 
 
-@Serializable
 enum class WeatherCondition(val label: String, val emoji: String) {
     CLEAR("맑음", "☀️"),
     PARTLY_CLOUDY("구름 조금", "⛅"),
