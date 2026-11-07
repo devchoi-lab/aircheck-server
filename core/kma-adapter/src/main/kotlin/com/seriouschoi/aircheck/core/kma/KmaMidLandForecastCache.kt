@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
+import java.time.LocalDate
 
 /**
  * 중기육상예보 조회 캐시 빈.
@@ -26,10 +27,11 @@ class KmaMidLandForecastCache(
     fun fetch(doCode: Long, sigunguCode: Long): MidLandForecast {
         check(apiKey.isNotBlank()) { "KMA API key not configured" }
         val regId = doCodeToLandRegId(doCode, sigunguCode)
+        val base = calculateMidFcstBase()
         return runWithUsage("KMA_MID_LAND_FCST", apiUsagePort) {
             val response = kmaMidApi.getMidLandFcst(
                 serviceKey = apiKey, pageNo = 1, numOfRows = 10, dataType = "JSON",
-                regId = regId, tmFc = calculateMidFcstTmFc()
+                regId = regId, tmFc = base.toMidFcstTmFc()
             )
             check(response.isNotEmpty()) { "KMA mid-land fcst: empty response" }
             val parsed = forecastJson.decodeFromString<KmaApiResponse<MidLandFcstItem>>(response)
@@ -38,22 +40,23 @@ class KmaMidLandForecastCache(
             }
             val item = parsed.response.body?.items?.item?.firstOrNull()
                 ?: error("KMA mid-land fcst: no data")
-            parseMidLandForecast(item)
+            parseMidLandForecast(item, base.toLocalDate())
         }
     }
 
-    private fun parseMidLandForecast(item: MidLandFcstItem): MidLandForecast {
+    private fun parseMidLandForecast(item: MidLandFcstItem, baseDate: LocalDate): MidLandForecast {
         val days = (3..10).map { offset ->
+            val date = baseDate.plusDays(offset.toLong())
             when (offset) {
-                3  -> MidLandForecastDay(offset, item.rnSt3Am ?: 0, item.rnSt3Pm ?: 0, item.wf3Am ?: "", item.wf3Pm ?: "")
-                4  -> MidLandForecastDay(offset, item.rnSt4Am ?: 0, item.rnSt4Pm ?: 0, item.wf4Am ?: "", item.wf4Pm ?: "")
-                5  -> MidLandForecastDay(offset, item.rnSt5Am ?: 0, item.rnSt5Pm ?: 0, item.wf5Am ?: "", item.wf5Pm ?: "")
-                6  -> MidLandForecastDay(offset, item.rnSt6Am ?: 0, item.rnSt6Pm ?: 0, item.wf6Am ?: "", item.wf6Pm ?: "")
-                7  -> MidLandForecastDay(offset, item.rnSt7Am ?: 0, item.rnSt7Pm ?: 0, item.wf7Am ?: "", item.wf7Pm ?: "")
-                8  -> MidLandForecastDay(offset, item.rnSt8  ?: 0, item.rnSt8  ?: 0, item.wf8  ?: "", item.wf8  ?: "")
-                9  -> MidLandForecastDay(offset, item.rnSt9  ?: 0, item.rnSt9  ?: 0, item.wf9  ?: "", item.wf9  ?: "")
-                10 -> MidLandForecastDay(offset, item.rnSt10 ?: 0, item.rnSt10 ?: 0, item.wf10 ?: "", item.wf10 ?: "")
-                else -> MidLandForecastDay(offset, 0, 0, "", "")
+                3  -> MidLandForecastDay(date, item.rnSt3Am ?: 0, item.rnSt3Pm ?: 0, item.wf3Am ?: "", item.wf3Pm ?: "")
+                4  -> MidLandForecastDay(date, item.rnSt4Am ?: 0, item.rnSt4Pm ?: 0, item.wf4Am ?: "", item.wf4Pm ?: "")
+                5  -> MidLandForecastDay(date, item.rnSt5Am ?: 0, item.rnSt5Pm ?: 0, item.wf5Am ?: "", item.wf5Pm ?: "")
+                6  -> MidLandForecastDay(date, item.rnSt6Am ?: 0, item.rnSt6Pm ?: 0, item.wf6Am ?: "", item.wf6Pm ?: "")
+                7  -> MidLandForecastDay(date, item.rnSt7Am ?: 0, item.rnSt7Pm ?: 0, item.wf7Am ?: "", item.wf7Pm ?: "")
+                8  -> MidLandForecastDay(date, item.rnSt8  ?: 0, item.rnSt8  ?: 0, item.wf8  ?: "", item.wf8  ?: "")
+                9  -> MidLandForecastDay(date, item.rnSt9  ?: 0, item.rnSt9  ?: 0, item.wf9  ?: "", item.wf9  ?: "")
+                10 -> MidLandForecastDay(date, item.rnSt10 ?: 0, item.rnSt10 ?: 0, item.wf10 ?: "", item.wf10 ?: "")
+                else -> MidLandForecastDay(date, 0, 0, "", "")
             }
         }
         return MidLandForecast(days)

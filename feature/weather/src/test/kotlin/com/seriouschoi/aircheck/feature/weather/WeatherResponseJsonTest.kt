@@ -45,7 +45,6 @@ class WeatherResponseJsonTest(@Autowired private val objectMapper: ObjectMapper)
     fun `DailyForecast date는 YYYY-MM-DD 문자열이다`() {
         val forecast = DailyForecast(
             date = LocalDate.of(2026, 3, 20),
-            dayOfWeek = "금",
             minTemp = 1.0,
             maxTemp = 12.0,
             amPrecipProb = 10,

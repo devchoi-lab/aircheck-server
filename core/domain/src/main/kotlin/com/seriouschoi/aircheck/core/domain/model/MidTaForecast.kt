@@ -1,5 +1,7 @@
 package com.seriouschoi.aircheck.core.domain.model
 
+import java.time.LocalDate
+
 /**
  * 중기기온예보 (3~10일, getMidTa API 응답)
  *
@@ -10,12 +12,12 @@ data class MidTaForecast(
 )
 
 /**
- * @param dayOffset  기준일 기준 일수 (3~10)
+ * @param date       예보 날짜 (KST 기준). 발표일 + 3~10일
  * @param minTemp    최저기온 (℃)
  * @param maxTemp    최고기온 (℃)
  */
 data class MidTaForecastDay(
-    val dayOffset: Int,
+    val date: LocalDate,
     val minTemp: Int,
     val maxTemp: Int
 )

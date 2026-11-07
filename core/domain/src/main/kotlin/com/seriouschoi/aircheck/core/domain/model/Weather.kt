@@ -27,12 +27,10 @@ data class CurrentWeather(
 
 data class HourlyForecast(
     val time: Instant,
-    val hour: Int,  // KST 기준 시간 (표시용)
     val temperature: Double,
     val feelsLike: Double,
     val precipitationProbability: Int,
     val snowfall: Double,
-    val weatherCode: Int,
     val weatherCondition: WeatherCondition
 )
 
@@ -42,7 +40,6 @@ data class HourlyForecast(
 data class DailyForecast(
     @Schema(description = "예보 날짜 (KST 기준, YYYY-MM-DD). 최저/최고기온과 오전/오후 구분도 KST 하루 기준", example = "2026-03-20")
     val date: LocalDate,
-    val dayOfWeek: String,         // 월, 화, 수...
     val minTemp: Double,           // 최저기온
     val maxTemp: Double,           // 최고기온
     val amPrecipProb: Int,         // 오전 강수확률
