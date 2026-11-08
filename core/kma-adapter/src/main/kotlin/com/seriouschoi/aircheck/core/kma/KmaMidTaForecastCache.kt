@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
+import java.time.LocalDate
 
 @Component
 @ConditionalOnProperty(name = ["weather.provider"], havingValue = "kma")
@@ -22,10 +23,11 @@ class KmaMidTaForecastCache(
     fun fetch(lat: Double, lng: Double): MidTaForecast {
         check(apiKey.isNotBlank()) { "KMA API key not configured" }
         val regId = KmaMidRegionMapper.toTaRegId(lat, lng)
+        val base = calculateMidFcstBase()
         return runWithUsage("KMA_MID_TA", apiUsagePort) {
             val response = kmaMidApi.getMidTa(
                 serviceKey = apiKey, pageNo = 1, numOfRows = 10, dataType = "JSON",
-                regId = regId, tmFc = calculateMidFcstTmFc()
+                regId = regId, tmFc = base.toMidFcstTmFc()
             )
             check(response.isNotEmpty()) { "KMA mid-ta: empty response" }
             val parsed = forecastJson.decodeFromString<KmaApiResponse<MidTaItem>>(response)
@@ -34,22 +36,23 @@ class KmaMidTaForecastCache(
             }
             val item = parsed.response.body?.items?.item?.firstOrNull()
                 ?: error("KMA mid-ta: no data")
-            parseMidTaForecast(item)
+            parseMidTaForecast(item, base.toLocalDate())
         }
     }
 
-    private fun parseMidTaForecast(item: MidTaItem): MidTaForecast {
+    private fun parseMidTaForecast(item: MidTaItem, baseDate: LocalDate): MidTaForecast {
         val days = (3..10).map { offset ->
+            val date = baseDate.plusDays(offset.toLong())
             when (offset) {
-                3  -> MidTaForecastDay(offset, item.taMin3  ?: 0, item.taMax3  ?: 0)
-                4  -> MidTaForecastDay(offset, item.taMin4  ?: 0, item.taMax4  ?: 0)
-                5  -> MidTaForecastDay(offset, item.taMin5  ?: 0, item.taMax5  ?: 0)
-                6  -> MidTaForecastDay(offset, item.taMin6  ?: 0, item.taMax6  ?: 0)
-                7  -> MidTaForecastDay(offset, item.taMin7  ?: 0, item.taMax7  ?: 0)
-                8  -> MidTaForecastDay(offset, item.taMin8  ?: 0, item.taMax8  ?: 0)
-                9  -> MidTaForecastDay(offset, item.taMin9  ?: 0, item.taMax9  ?: 0)
-                10 -> MidTaForecastDay(offset, item.taMin10 ?: 0, item.taMax10 ?: 0)
-                else -> MidTaForecastDay(offset, 0, 0)
+                3  -> MidTaForecastDay(date, item.taMin3  ?: 0, item.taMax3  ?: 0)
+                4  -> MidTaForecastDay(date, item.taMin4  ?: 0, item.taMax4  ?: 0)
+                5  -> MidTaForecastDay(date, item.taMin5  ?: 0, item.taMax5  ?: 0)
+                6  -> MidTaForecastDay(date, item.taMin6  ?: 0, item.taMax6  ?: 0)
+                7  -> MidTaForecastDay(date, item.taMin7  ?: 0, item.taMax7  ?: 0)
+                8  -> MidTaForecastDay(date, item.taMin8  ?: 0, item.taMax8  ?: 0)
+                9  -> MidTaForecastDay(date, item.taMin9  ?: 0, item.taMax9  ?: 0)
+                10 -> MidTaForecastDay(date, item.taMin10 ?: 0, item.taMax10 ?: 0)
+                else -> MidTaForecastDay(date, 0, 0)
             }
         }
         return MidTaForecast(days)

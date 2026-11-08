@@ -13,7 +13,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 internal val KST_ZONE: ZoneId = ZoneId.of("Asia/Seoul")
 
@@ -59,16 +58,22 @@ internal fun calculateVilageFcstBaseDateTime(): Pair<String, String> {
             String.format("%02d00", baseHour)
 }
 
-/** 중기예보 tmFc 계산 (발표시각: 06시·18시) */
-internal fun calculateMidFcstTmFc(): String {
+/**
+ * 중기예보 발표시각 계산 (KST, 06시·18시).
+ * 중기예보의 "N일 후"는 이 발표일(날짜) 기준이다.
+ */
+internal fun calculateMidFcstBase(): LocalDateTime {
     val now = LocalDateTime.now(KST_ZONE)
-    val base = when {
+    return when {
         now.hour < 6  -> now.minusDays(1).withHour(18)
         now.hour < 18 -> now.withHour(6)
         else          -> now.withHour(18)
     }
-    return base.format(DateTimeFormatter.ofPattern("yyyyMMddHH00"))
 }
+
+/** 중기예보 API의 tmFc 파라미터 (yyyyMMddHH00) */
+internal fun LocalDateTime.toMidFcstTmFc(): String =
+    format(DateTimeFormatter.ofPattern("yyyyMMddHH00"))
 
 // ── 날씨 파싱 ─────────────────────────────────────────────────────────────────
 
@@ -102,7 +107,6 @@ internal fun parseExtendedHourlyForecast(items: List<FcstItem>): List<HourlyFore
     if (items.isEmpty()) return emptyList()
     return items.groupBy { "${it.fcstDate}_${it.fcstTime}" }.map { (timeKey, timeItems) ->
         val (fcstDate, fcstTime) = timeKey.split("_")
-        val hour = fcstTime.substring(0, 2).toInt()
         var temperature = 0.0; var sky = 1; var pty = 0; var pop = 0
         var sno = 0.0; var windSpeed = 0.0; var humidity = 50
         timeItems.forEach { item ->
@@ -121,19 +125,16 @@ internal fun parseExtendedHourlyForecast(items: List<FcstItem>): List<HourlyFore
         )
         HourlyForecast(
             time = kstDateTime.atZone(KST_ZONE).toInstant(),
-            hour = hour,
             temperature = temperature,
             feelsLike = calculateFeelsLike(temperature, windSpeed, humidity),
             precipitationProbability = pop,
             snowfall = sno,
-            weatherCode = pty * 10 + sky,
             weatherCondition = convertToWeatherCondition(pty, sky)
         )
     }.sortedBy { it.time }.take(48)
 }
 
 internal fun parseDailyForecast(items: List<FcstItem>): List<DailyForecast> {
-    val dayOfWeekFmt = DateTimeFormatter.ofPattern("E", Locale.KOREAN)
     val dateFmt = DateTimeFormatter.ofPattern("yyyyMMdd")
     return items.groupBy { it.fcstDate }.map { (date, dateItems) ->
         var minTemp = Double.MAX_VALUE
@@ -176,8 +177,7 @@ internal fun parseDailyForecast(items: List<FcstItem>): List<DailyForecast> {
         }
         val localDate = LocalDate.parse(date, dateFmt)
         DailyForecast(
-            date = "${localDate.year}-${String.format("%02d", localDate.monthValue)}-${String.format("%02d", localDate.dayOfMonth)}",
-            dayOfWeek = localDate.format(dayOfWeekFmt),
+            date = localDate,
             minTemp = if (minTemp == Double.MAX_VALUE) 0.0 else minTemp,
             maxTemp = if (maxTemp == Double.MIN_VALUE) 0.0 else maxTemp,
             amPrecipProb = amPop, pmPrecipProb = pmPop,
