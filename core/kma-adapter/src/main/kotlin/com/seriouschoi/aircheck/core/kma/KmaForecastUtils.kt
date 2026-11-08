@@ -77,17 +77,23 @@ internal fun LocalDateTime.toMidFcstTmFc(): String =
 
 // ── 날씨 파싱 ─────────────────────────────────────────────────────────────────
 
+/**
+ * 초단기실황 항목에서 현재 날씨를 만든다.
+ *
+ * 항목이 없거나 숫자로 읽을 수 없으면 기본값(0 등)으로 채우지 않고 null로 둔다.
+ * 초단기실황에는 하늘상태(SKY)가 없어 날씨는 강수형태(PTY)로 비/눈일 때만 만들고, 그 외에는 null.
+ */
 internal fun parseCurrentWeather(items: List<NcstItem>): CurrentWeather {
-    var temperature = 0.0; var humidity = 0; var precipitation = 0.0
-    var windSpeed = 0.0; var windDirection = 0; var pty = 0
+    var temperature: Double? = null; var humidity: Int? = null; var precipitation: Double? = null
+    var windSpeed: Double? = null; var windDirection: Int? = null; var pty: Int? = null
     items.forEach { item ->
         when (item.category) {
-            "T1H" -> temperature   = item.obsrValue.toDoubleOrNull() ?: 0.0
-            "REH" -> humidity      = item.obsrValue.toIntOrNull()    ?: 0
-            "RN1" -> precipitation = item.obsrValue.toDoubleOrNull() ?: 0.0
-            "WSD" -> windSpeed     = item.obsrValue.toDoubleOrNull() ?: 0.0
-            "VEC" -> windDirection = item.obsrValue.toIntOrNull()    ?: 0
-            "PTY" -> pty           = item.obsrValue.toIntOrNull()    ?: 0
+            "T1H" -> item.obsrValue.toDoubleOrNull()?.let { temperature = it }
+            "REH" -> item.obsrValue.toIntOrNull()?.let { humidity = it }
+            "RN1" -> item.obsrValue.toDoubleOrNull()?.let { precipitation = it }
+            "WSD" -> item.obsrValue.toDoubleOrNull()?.let { windSpeed = it }
+            "VEC" -> item.obsrValue.toIntOrNull()?.let { windDirection = it }
+            "PTY" -> item.obsrValue.toIntOrNull()?.let { pty = it }
         }
     }
     val isDay = LocalDateTime.now(KST_ZONE).hour in 6..18
@@ -98,26 +104,39 @@ internal fun parseCurrentWeather(items: List<NcstItem>): CurrentWeather {
         humidity = humidity,
         windSpeed = windSpeed,
         windDirection = windDirection,
-        weatherCondition = convertToWeatherCondition(pty = pty, sky = 1),
+        weatherCondition = pty?.let { precipitationCondition(it) },
         isDay = isDay
     )
 }
 
+/** 강수형태(PTY)로 알 수 있는 날씨. 비/눈이 아니면(강수 없음 포함) 하늘상태를 알 수 없으므로 null. */
+private fun precipitationCondition(pty: Int): WeatherCondition? = when (pty) {
+    1, 2, 5, 6 -> WeatherCondition.RAIN
+    3, 7 -> WeatherCondition.SNOW
+    else -> null
+}
+
+/**
+ * 단기예보 항목에서 시간별 예보를 만든다.
+ *
+ * 항목이 없거나 숫자로 읽을 수 없으면 기본값으로 채우지 않고 null로 둔다.
+ * 참고: 기상청 SNO는 범주 문자열(예: "적설없음")이라 숫자로 읽을 수 없으면 snowfall은 null이다.
+ */
 internal fun parseExtendedHourlyForecast(items: List<FcstItem>): List<HourlyForecast> {
     if (items.isEmpty()) return emptyList()
     return items.groupBy { "${it.fcstDate}_${it.fcstTime}" }.map { (timeKey, timeItems) ->
         val (fcstDate, fcstTime) = timeKey.split("_")
-        var temperature = 0.0; var sky = 1; var pty = 0; var pop = 0
-        var sno = 0.0; var windSpeed = 0.0; var humidity = 50
+        var temperature: Double? = null; var sky: Int? = null; var pty: Int? = null; var pop: Int? = null
+        var sno: Double? = null; var windSpeed: Double? = null; var humidity: Int? = null
         timeItems.forEach { item ->
             when (item.category) {
-                "TMP" -> temperature = item.fcstValue.toDoubleOrNull() ?: 0.0
-                "SKY" -> sky         = item.fcstValue.toIntOrNull()    ?: 1
-                "PTY" -> pty         = item.fcstValue.toIntOrNull()    ?: 0
-                "POP" -> pop         = item.fcstValue.toIntOrNull()    ?: 0
-                "SNO" -> sno         = item.fcstValue.toDoubleOrNull() ?: 0.0
-                "WSD" -> windSpeed   = item.fcstValue.toDoubleOrNull() ?: 0.0
-                "REH" -> humidity    = item.fcstValue.toIntOrNull()    ?: 50
+                "TMP" -> item.fcstValue.toDoubleOrNull()?.let { temperature = it }
+                "SKY" -> item.fcstValue.toIntOrNull()?.let { sky = it }
+                "PTY" -> item.fcstValue.toIntOrNull()?.let { pty = it }
+                "POP" -> item.fcstValue.toIntOrNull()?.let { pop = it }
+                "SNO" -> item.fcstValue.toDoubleOrNull()?.let { sno = it }
+                "WSD" -> item.fcstValue.toDoubleOrNull()?.let { windSpeed = it }
+                "REH" -> item.fcstValue.toIntOrNull()?.let { humidity = it }
             }
         }
         val kstDateTime: LocalDateTime = LocalDateTime.parse(
@@ -129,7 +148,7 @@ internal fun parseExtendedHourlyForecast(items: List<FcstItem>): List<HourlyFore
             feelsLike = calculateFeelsLike(temperature, windSpeed, humidity),
             precipitationProbability = pop,
             snowfall = sno,
-            weatherCondition = convertToWeatherCondition(pty, sky)
+            weatherCondition = toWeatherConditionOrNull(pty, sky)
         )
     }.sortedBy { it.time }.take(48)
 }
@@ -189,13 +208,28 @@ private fun toWeatherConditionOrNull(pty: Int?, sky: Int?): WeatherCondition? =
 
 // ── 공통 유틸 ─────────────────────────────────────────────────────────────────
 
-internal fun calculateFeelsLike(temp: Double, windSpeed: Double, humidity: Int): Double = when {
-    temp <= 10 && windSpeed >= 1.3 -> {
-        val ws016 = Math.pow(windSpeed, 0.16)
-        13.12 + 0.6215 * temp - 11.37 * ws016 + 0.3965 * temp * ws016
+/**
+ * 체감온도. 기온이 없으면 null.
+ * - 기온 ≤10℃: 풍속이 있어야 판단할 수 있다 (≥1.3m/s이면 Wind Chill, 아니면 기온). 풍속이 없으면 null
+ * - 기온 ≥27℃: 습도가 있어야 Heat Index를 계산할 수 있다. 습도가 없으면 null
+ * - 그 외: 기온
+ */
+internal fun calculateFeelsLike(temp: Double?, windSpeed: Double?, humidity: Int?): Double? {
+    if (temp == null) return null
+    return when {
+        temp <= 10 -> when {
+            windSpeed == null -> null
+            windSpeed >= 1.3 -> {
+                val ws016 = Math.pow(windSpeed, 0.16)
+                13.12 + 0.6215 * temp - 11.37 * ws016 + 0.3965 * temp * ws016
+            }
+            else -> temp
+        }
+        temp >= 27 ->
+            if (humidity == null) null
+            else temp + 0.33 * (humidity / 100.0 * 6.105 * Math.exp(17.27 * temp / (237.7 + temp))) - 4.0
+        else -> temp
     }
-    temp >= 27 -> temp + 0.33 * (humidity / 100.0 * 6.105 * Math.exp(17.27 * temp / (237.7 + temp))) - 4.0
-    else -> temp
 }
 
 internal fun convertToWeatherCondition(pty: Int, sky: Int): WeatherCondition = when (pty) {

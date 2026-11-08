@@ -44,24 +44,6 @@ class KmaMidLandForecastCache(
         }
     }
 
-    private fun parseMidLandForecast(item: MidLandFcstItem, baseDate: LocalDate): MidLandForecast {
-        val days = (3..10).map { offset ->
-            val date = baseDate.plusDays(offset.toLong())
-            when (offset) {
-                3  -> MidLandForecastDay(date, item.rnSt3Am ?: 0, item.rnSt3Pm ?: 0, item.wf3Am ?: "", item.wf3Pm ?: "")
-                4  -> MidLandForecastDay(date, item.rnSt4Am ?: 0, item.rnSt4Pm ?: 0, item.wf4Am ?: "", item.wf4Pm ?: "")
-                5  -> MidLandForecastDay(date, item.rnSt5Am ?: 0, item.rnSt5Pm ?: 0, item.wf5Am ?: "", item.wf5Pm ?: "")
-                6  -> MidLandForecastDay(date, item.rnSt6Am ?: 0, item.rnSt6Pm ?: 0, item.wf6Am ?: "", item.wf6Pm ?: "")
-                7  -> MidLandForecastDay(date, item.rnSt7Am ?: 0, item.rnSt7Pm ?: 0, item.wf7Am ?: "", item.wf7Pm ?: "")
-                8  -> MidLandForecastDay(date, item.rnSt8  ?: 0, item.rnSt8  ?: 0, item.wf8  ?: "", item.wf8  ?: "")
-                9  -> MidLandForecastDay(date, item.rnSt9  ?: 0, item.rnSt9  ?: 0, item.wf9  ?: "", item.wf9  ?: "")
-                10 -> MidLandForecastDay(date, item.rnSt10 ?: 0, item.rnSt10 ?: 0, item.wf10 ?: "", item.wf10 ?: "")
-                else -> MidLandForecastDay(date, 0, 0, "", "")
-            }
-        }
-        return MidLandForecast(days)
-    }
-
     /**
      * 법정동 도/시군구 코드 → 중기육상예보 예보구역코드(landRegId)
      *
@@ -101,4 +83,26 @@ class KmaMidLandForecastCache(
         )
         return if (sigunguCode in yeongdong) "11D20000" else "11D10000"
     }
+}
+
+/**
+ * 중기육상예보 항목에서 3~10일 예보를 만든다.
+ * 값이 없으면 기본값(0, "")으로 채우지 않고 null로 둔다. 8~10일은 단일값을 오전/오후에 공통으로 쓴다.
+ */
+internal fun parseMidLandForecast(item: MidLandFcstItem, baseDate: LocalDate): MidLandForecast {
+    val days = (3..10).map { offset ->
+        val date = baseDate.plusDays(offset.toLong())
+        when (offset) {
+            3  -> MidLandForecastDay(date, item.rnSt3Am, item.rnSt3Pm, item.wf3Am, item.wf3Pm)
+            4  -> MidLandForecastDay(date, item.rnSt4Am, item.rnSt4Pm, item.wf4Am, item.wf4Pm)
+            5  -> MidLandForecastDay(date, item.rnSt5Am, item.rnSt5Pm, item.wf5Am, item.wf5Pm)
+            6  -> MidLandForecastDay(date, item.rnSt6Am, item.rnSt6Pm, item.wf6Am, item.wf6Pm)
+            7  -> MidLandForecastDay(date, item.rnSt7Am, item.rnSt7Pm, item.wf7Am, item.wf7Pm)
+            8  -> MidLandForecastDay(date, item.rnSt8, item.rnSt8, item.wf8, item.wf8)
+            9  -> MidLandForecastDay(date, item.rnSt9, item.rnSt9, item.wf9, item.wf9)
+            10 -> MidLandForecastDay(date, item.rnSt10, item.rnSt10, item.wf10, item.wf10)
+            else -> MidLandForecastDay(date, null, null, null, null)
+        }
+    }
+    return MidLandForecast(days)
 }

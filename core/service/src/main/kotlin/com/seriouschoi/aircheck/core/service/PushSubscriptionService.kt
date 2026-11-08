@@ -71,17 +71,22 @@ class PushSubscriptionService(
                 val air = getAirQualityUseCase.execute(sub.latitude, sub.longitude)
 
                 val current = weather?.shortForecast?.current
-                if (current != null) {
-                    val recommendation = buildRecommendation(current.temperature, air?.pm25)
+                val temperature = current?.temperature
+                if (current != null && temperature != null) {
+                    val recommendation = buildRecommendation(temperature, air?.pm25)
                     val pm25Status = air?.pm25?.let { getPm25Status(it) } ?: "❓ 알 수 없음"
+                    val condition = current.weatherCondition?.let { it.emoji + " " + it.label } ?: "❓ 알 수 없음"
 
                     pushNotificationPort.sendWeatherSummary(
                         token = sub.fcmToken,
-                        temperature = current.temperature,
-                        weatherCondition = current.weatherCondition.emoji + " " + current.weatherCondition.label,
+                        temperature = temperature,
+                        weatherCondition = condition,
                         pm25Grade = pm25Status,
                         recommendation = recommendation
                     )
+                } else {
+                    // 현재 기온이 없으면 잘못된 값을 보내지 않고 건너뜀
+                    log.warn("Skip push for ${sub.id}: 현재 기온 없음")
                 }
             } catch (e: Exception) {
                 log.error("Failed to send push to ${sub.id}: ${e.message}")
