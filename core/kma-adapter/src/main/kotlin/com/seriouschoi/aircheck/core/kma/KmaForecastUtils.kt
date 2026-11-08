@@ -134,58 +134,58 @@ internal fun parseExtendedHourlyForecast(items: List<FcstItem>): List<HourlyFore
     }.sortedBy { it.time }.take(48)
 }
 
+/**
+ * 단기예보 항목에서 일별 예보를 만든다.
+ *
+ * 값이 없거나 숫자로 읽을 수 없으면 기본값(0, 맑음 등)으로 채우지 않고 null로 둔다.
+ * 오전/오후는 예보 시각이 12시 이전/이후인지로 나눈다.
+ */
 internal fun parseDailyForecast(items: List<FcstItem>): List<DailyForecast> {
     val dateFmt = DateTimeFormatter.ofPattern("yyyyMMdd")
     return items.groupBy { it.fcstDate }.map { (date, dateItems) ->
-        var minTemp = Double.MAX_VALUE
-        var maxTemp = Double.MIN_VALUE
-        var amPop = 0; var pmPop = 0
-        var amSky = 1; var pmSky = 1
-        var amPty = 0; var pmPty = 0
+        var minTemp: Double? = null
+        var maxTemp: Double? = null
+        var amPop: Int? = null; var pmPop: Int? = null
+        var amSky: Int? = null; var pmSky: Int? = null
+        var amPty: Int? = null; var pmPty: Int? = null
         dateItems.forEach { item ->
             val isAm = (item.fcstTime.substring(0, 2).toIntOrNull() ?: 0) < 12
             when (item.category) {
-                "TMN" -> minTemp = item.fcstValue.toDoubleOrNull() ?: minTemp
-                "TMX" -> maxTemp = item.fcstValue.toDoubleOrNull() ?: maxTemp
-                "TMP" -> {
-                    val t = item.fcstValue.toDoubleOrNull() ?: 0.0
-                    if (t < minTemp) minTemp = t
-                    if (t > maxTemp) maxTemp = t
+                // 일 최저/최고기온 (TMN/TMX). 읽을 수 없으면 기존 값 유지
+                "TMN" -> item.fcstValue.toDoubleOrNull()?.let { minTemp = it }
+                "TMX" -> item.fcstValue.toDoubleOrNull()?.let { maxTemp = it }
+                // TMN/TMX가 없을 때를 위해 시간대별 기온(TMP)으로 최솟값/최댓값 갱신
+                "TMP" -> item.fcstValue.toDoubleOrNull()?.let { t ->
+                    val curMin = minTemp
+                    val curMax = maxTemp
+                    if (curMin == null || t < curMin) minTemp = t
+                    if (curMax == null || t > curMax) maxTemp = t
                 }
-                "POP" -> {
-                    val p = item.fcstValue.toIntOrNull() ?: 0
-                    if (isAm)
-                        amPop = maxOf(amPop, p)
-                    else
-                        pmPop = maxOf(pmPop, p)
+                "POP" -> item.fcstValue.toIntOrNull()?.let { p ->
+                    if (isAm) amPop = maxOf(amPop ?: p, p) else pmPop = maxOf(pmPop ?: p, p)
                 }
-                "SKY" -> {
-                    val s = item.fcstValue.toIntOrNull() ?: 1
-                    if (isAm)
-                        amSky = s
-                    else
-                        pmSky = s
+                "SKY" -> item.fcstValue.toIntOrNull()?.let { s ->
+                    if (isAm) amSky = s else pmSky = s
                 }
-                "PTY" -> {
-                    val p = item.fcstValue.toIntOrNull() ?: 0
-                    if (isAm)
-                        amPty = p
-                    else
-                        pmPty = p
+                "PTY" -> item.fcstValue.toIntOrNull()?.let { p ->
+                    if (isAm) amPty = p else pmPty = p
                 }
             }
         }
-        val localDate = LocalDate.parse(date, dateFmt)
         DailyForecast(
-            date = localDate,
-            minTemp = if (minTemp == Double.MAX_VALUE) 0.0 else minTemp,
-            maxTemp = if (maxTemp == Double.MIN_VALUE) 0.0 else maxTemp,
+            date = LocalDate.parse(date, dateFmt),
+            minTemp = minTemp,
+            maxTemp = maxTemp,
             amPrecipProb = amPop, pmPrecipProb = pmPop,
-            amWeatherCondition = convertToWeatherCondition(amPty, amSky),
-            pmWeatherCondition = convertToWeatherCondition(pmPty, pmSky)
+            amWeatherCondition = toWeatherConditionOrNull(amPty, amSky),
+            pmWeatherCondition = toWeatherConditionOrNull(pmPty, pmSky)
         )
     }.sortedBy { it.date }.take(3)
 }
+
+/** 강수형태(PTY)와 하늘상태(SKY)가 모두 있을 때만 날씨를 만든다. 하나라도 없으면 null. */
+private fun toWeatherConditionOrNull(pty: Int?, sky: Int?): WeatherCondition? =
+    if (pty != null && sky != null) convertToWeatherCondition(pty, sky) else null
 
 // ── 공통 유틸 ─────────────────────────────────────────────────────────────────
 

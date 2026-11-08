@@ -40,12 +40,18 @@ data class HourlyForecast(
 data class DailyForecast(
     @Schema(description = "예보 날짜 (KST 기준, YYYY-MM-DD). 최저/최고기온과 오전/오후 구분도 KST 하루 기준", example = "2026-03-20")
     val date: LocalDate,
-    val minTemp: Double,           // 최저기온
-    val maxTemp: Double,           // 최고기온
-    val amPrecipProb: Int,         // 오전 강수확률
-    val pmPrecipProb: Int,         // 오후 강수확률
-    val amWeatherCondition: WeatherCondition,
-    val pmWeatherCondition: WeatherCondition
+    @Schema(description = "최저기온 (℃). 기상청 응답에 값이 없으면 null", nullable = true)
+    val minTemp: Double?,
+    @Schema(description = "최고기온 (℃). 기상청 응답에 값이 없으면 null", nullable = true)
+    val maxTemp: Double?,
+    @Schema(description = "오전(12시 이전) 강수확률 최댓값 (%). 오전 예보 값이 없으면 null", nullable = true)
+    val amPrecipProb: Int?,
+    @Schema(description = "오후(12시 이후) 강수확률 최댓값 (%). 오후 예보 값이 없으면 null", nullable = true)
+    val pmPrecipProb: Int?,
+    @Schema(description = "오전 날씨. 하늘상태(SKY)나 강수형태(PTY) 값이 없으면 null", nullable = true)
+    val amWeatherCondition: WeatherCondition?,
+    @Schema(description = "오후 날씨. 하늘상태(SKY)나 강수형태(PTY) 값이 없으면 null", nullable = true)
+    val pmWeatherCondition: WeatherCondition?
 )
 
 
