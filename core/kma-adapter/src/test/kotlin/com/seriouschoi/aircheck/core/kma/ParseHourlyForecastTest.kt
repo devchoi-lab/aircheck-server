@@ -1,6 +1,7 @@
 package com.seriouschoi.aircheck.core.kma
 
-import com.seriouschoi.aircheck.core.domain.model.WeatherCondition
+import com.seriouschoi.aircheck.core.domain.model.PrecipitationType
+import com.seriouschoi.aircheck.core.domain.model.SkyCondition
 import com.seriouschoi.aircheck.core.kma.dto.FcstItem
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -29,7 +30,8 @@ class ParseHourlyForecastTest {
         assertEquals(15.0, result.temperature)
         assertEquals(30, result.precipitationProbability)
         assertEquals(0.5, result.snowfall)
-        assertEquals(WeatherCondition.CLOUDY, result.weatherCondition)
+        assertEquals(SkyCondition.OVERCAST, result.sky)
+        assertEquals(PrecipitationType.NONE, result.precipitationType)
         assertEquals(15.0, result.feelsLike)
     }
 
@@ -41,14 +43,30 @@ class ParseHourlyForecastTest {
         assertNull(result.temperature)
         assertNull(result.feelsLike)
         assertNull(result.snowfall)
-        assertNull(result.weatherCondition)
+        assertNull(result.sky)
+        assertNull(result.precipitationType)
     }
 
     @Test
-    fun `하늘상태나 강수형태 중 하나만 있으면 날씨는 null이다`() {
-        val result = parseExtendedHourlyForecast(listOf(item("SKY", "1"))).single()
+    fun `하늘상태와 강수형태는 서로 영향을 주지 않는다`() {
+        val onlySky = parseExtendedHourlyForecast(listOf(item("SKY", "1"))).single()
+        assertEquals(SkyCondition.CLEAR, onlySky.sky)
+        assertNull(onlySky.precipitationType)
 
-        assertNull(result.weatherCondition)
+        val onlyPty = parseExtendedHourlyForecast(listOf(item("PTY", "4"))).single()
+        assertNull(onlyPty.sky)
+        assertEquals(PrecipitationType.SHOWER, onlyPty.precipitationType)
+    }
+
+    @Test
+    fun `정의되지 않은 코드는 UNKNOWN이고 결측값은 null이다`() {
+        val unknown = parseExtendedHourlyForecast(listOf(item("SKY", "2"), item("PTY", "9"))).single()
+        assertEquals(SkyCondition.UNKNOWN, unknown.sky)
+        assertEquals(PrecipitationType.UNKNOWN, unknown.precipitationType)
+
+        val missing = parseExtendedHourlyForecast(listOf(item("SKY", "-999"), item("PTY", "-999"))).single()
+        assertNull(missing.sky)
+        assertNull(missing.precipitationType)
     }
 
     @Test

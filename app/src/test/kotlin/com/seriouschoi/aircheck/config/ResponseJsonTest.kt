@@ -6,7 +6,8 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.seriouschoi.aircheck.core.domain.model.AirQualityResponse
 import com.seriouschoi.aircheck.core.domain.model.DailyForecast
-import com.seriouschoi.aircheck.core.domain.model.WeatherCondition
+import com.seriouschoi.aircheck.core.domain.model.PrecipitationType
+import com.seriouschoi.aircheck.core.domain.model.SkyCondition
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -52,8 +53,10 @@ class ResponseJsonTest(@Autowired private val objectMapper: ObjectMapper) {
             maxTemp = 12.0,
             amPrecipProb = 10,
             pmPrecipProb = 20,
-            amWeatherCondition = WeatherCondition.CLEAR,
-            pmWeatherCondition = WeatherCondition.CLOUDY
+            amSky = SkyCondition.CLEAR,
+            pmSky = SkyCondition.OVERCAST,
+            amPrecipitationType = PrecipitationType.NONE,
+            pmPrecipitationType = PrecipitationType.SHOWER
         )
 
         val node = objectMapper.readTree(objectMapper.writeValueAsString(forecast))

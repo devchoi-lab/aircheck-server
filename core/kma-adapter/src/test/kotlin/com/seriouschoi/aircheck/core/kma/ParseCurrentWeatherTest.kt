@@ -1,13 +1,13 @@
 package com.seriouschoi.aircheck.core.kma
 
-import com.seriouschoi.aircheck.core.domain.model.WeatherCondition
+import com.seriouschoi.aircheck.core.domain.model.PrecipitationType
 import com.seriouschoi.aircheck.core.kma.dto.NcstItem
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 
 /**
- * parseCurrentWeather 테스트. 값이 없을 때 0이나 맑음으로 채우지 않고 null이어야 한다.
+ * parseCurrentWeather 테스트. 값이 없을 때 0으로 채우지 않고 null이어야 한다. 강수형태(PTY)는 기상청 값 그대로 담는다.
  */
 class ParseCurrentWeatherTest {
 
@@ -30,6 +30,7 @@ class ParseCurrentWeatherTest {
         assertEquals(0.0, result.precipitation)
         assertEquals(1.8, result.windSpeed)
         assertEquals(158, result.windDirection)
+        assertEquals(PrecipitationType.NONE, result.precipitationType)
     }
 
     @Test
@@ -42,7 +43,7 @@ class ParseCurrentWeatherTest {
         assertNull(result.humidity)
         assertNull(result.windSpeed)
         assertNull(result.windDirection)
-        assertNull(result.weatherCondition)
+        assertNull(result.precipitationType)
     }
 
     @Test
@@ -54,16 +55,27 @@ class ParseCurrentWeatherTest {
     }
 
     @Test
-    fun `비나 눈이 오면 날씨를 알 수 있다`() {
-        assertEquals(WeatherCondition.RAIN, parseCurrentWeather(listOf(item("PTY", "1"))).weatherCondition)
-        assertEquals(WeatherCondition.RAIN, parseCurrentWeather(listOf(item("PTY", "5"))).weatherCondition)
-        assertEquals(WeatherCondition.SNOW, parseCurrentWeather(listOf(item("PTY", "3"))).weatherCondition)
-        assertEquals(WeatherCondition.SNOW, parseCurrentWeather(listOf(item("PTY", "7"))).weatherCondition)
+    fun `강수형태는 기상청 코드 그대로 담는다`() {
+        val expected = mapOf(
+            "0" to PrecipitationType.NONE, "1" to PrecipitationType.RAIN,
+            "2" to PrecipitationType.RAIN_SNOW, "3" to PrecipitationType.SNOW,
+            "4" to PrecipitationType.SHOWER, "5" to PrecipitationType.RAINDROP,
+            "6" to PrecipitationType.RAINDROP_SNOW_FLURRY, "7" to PrecipitationType.SNOW_FLURRY
+        )
+        expected.forEach { (code, type) ->
+            assertEquals(type, parseCurrentWeather(listOf(item("PTY", code))).precipitationType, "PTY=$code")
+        }
     }
 
     @Test
-    fun `강수가 없으면 하늘상태를 알 수 없으므로 날씨는 null이다`() {
-        // 초단기실황에는 SKY가 없다. 기존에는 PTY=0이면 항상 CLEAR(맑음)로 내려갔다
-        assertNull(parseCurrentWeather(listOf(item("PTY", "0"))).weatherCondition)
+    fun `강수형태 항목이 없거나 읽을 수 없거나 결측값이면 null이다`() {
+        assertNull(parseCurrentWeather(emptyList()).precipitationType)
+        assertNull(parseCurrentWeather(listOf(item("PTY", "abc"))).precipitationType)
+        assertNull(parseCurrentWeather(listOf(item("PTY", "-999"))).precipitationType)
+    }
+
+    @Test
+    fun `정의되지 않은 강수형태 코드는 null이 아니라 UNKNOWN이다`() {
+        assertEquals(PrecipitationType.UNKNOWN, parseCurrentWeather(listOf(item("PTY", "9"))).precipitationType)
     }
 }
