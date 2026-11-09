@@ -117,6 +117,7 @@ class PushSubscriptionService(
         PrecipitationType.RAINDROP -> "🌧️ 빗방울"
         PrecipitationType.RAINDROP_SNOW_FLURRY -> "🌨️ 빗방울눈날림"
         PrecipitationType.SNOW_FLURRY -> "🌨️ 눈날림"
+        PrecipitationType.UNKNOWN -> "❓ 알 수 없음"
     }
 
     private fun buildRecommendation(temp: Double, pm25: Int?): String {

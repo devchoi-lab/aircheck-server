@@ -133,6 +133,17 @@ class ParseDailyForecastTest {
     }
 
     @Test
+    fun `결측값은 앞서 읽은 값을 지우지 않고 정의되지 않은 코드는 UNKNOWN이다`() {
+        val missing = parseDailyForecast(
+            listOf(item("PTY", "0600", "1"), item("PTY", "0900", "-999"))
+        ).single()
+        assertEquals(PrecipitationType.RAIN, missing.amPrecipitationType)
+
+        val unknown = parseDailyForecast(listOf(item("SKY", "0600", "9"))).single()
+        assertEquals(SkyCondition.UNKNOWN, unknown.amSky)
+    }
+
+    @Test
     fun `날짜별로 나뉘고 날짜순으로 정렬된다`() {
         val result = parseDailyForecast(
             listOf(

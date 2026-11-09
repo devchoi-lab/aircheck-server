@@ -68,9 +68,14 @@ class ParseCurrentWeatherTest {
     }
 
     @Test
-    fun `강수형태 항목이 없거나 정의되지 않은 코드이면 null이다`() {
+    fun `강수형태 항목이 없거나 읽을 수 없거나 결측값이면 null이다`() {
         assertNull(parseCurrentWeather(emptyList()).precipitationType)
-        assertNull(parseCurrentWeather(listOf(item("PTY", "9"))).precipitationType)
         assertNull(parseCurrentWeather(listOf(item("PTY", "abc"))).precipitationType)
+        assertNull(parseCurrentWeather(listOf(item("PTY", "-999"))).precipitationType)
+    }
+
+    @Test
+    fun `정의되지 않은 강수형태 코드는 null이 아니라 UNKNOWN이다`() {
+        assertEquals(PrecipitationType.UNKNOWN, parseCurrentWeather(listOf(item("PTY", "9"))).precipitationType)
     }
 }

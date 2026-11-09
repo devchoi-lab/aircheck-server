@@ -23,6 +23,27 @@ internal val forecastJson = Json {
 }
 
 private val usageLogger = KotlinLogging.logger {}
+private val codeLogger = KotlinLogging.logger {}
+
+/** 기상청 결측값 기준: +900 이상, -900 이하는 Missing 값 */
+private const val KMA_MISSING_ABS = 900
+
+/** 코드값 문자열을 Int로 읽는다. 숫자가 아니거나 결측값이면 null. */
+private fun String.toKmaCodeOrNull(): Int? = toIntOrNull()?.takeIf { kotlin.math.abs(it) < KMA_MISSING_ABS }
+
+/** 결측이면 null, 정의되지 않은 코드면 UNKNOWN(경고 로그에 원래 코드를 남김). */
+private fun String.toPrecipitationTypeOrNull(): PrecipitationType? = toKmaCodeOrNull()?.let { code ->
+    PrecipitationType.fromCode(code).also {
+        if (it == PrecipitationType.UNKNOWN) codeLogger.warn { "정의되지 않은 PTY 코드: $code" }
+    }
+}
+
+/** 결측이면 null, 정의되지 않은 코드면 UNKNOWN(경고 로그에 원래 코드를 남김). */
+private fun String.toSkyConditionOrNull(): SkyCondition? = toKmaCodeOrNull()?.let { code ->
+    SkyCondition.fromCode(code).also {
+        if (it == SkyCondition.UNKNOWN) codeLogger.warn { "정의되지 않은 SKY 코드: $code" }
+    }
+}
 
 internal fun <T> runWithUsage(apiType: String, apiUsagePort: ApiUsagePort?, block: () -> T): T {
     val startTime = System.currentTimeMillis()
@@ -94,7 +115,7 @@ internal fun parseCurrentWeather(items: List<NcstItem>): CurrentWeather {
             "RN1" -> item.obsrValue.toDoubleOrNull()?.let { precipitation = it }
             "WSD" -> item.obsrValue.toDoubleOrNull()?.let { windSpeed = it }
             "VEC" -> item.obsrValue.toIntOrNull()?.let { windDirection = it }
-            "PTY" -> item.obsrValue.toIntOrNull()?.let { pty = PrecipitationType.fromCode(it) }
+            "PTY" -> item.obsrValue.toPrecipitationTypeOrNull()?.let { pty = it }
         }
     }
     val isDay = LocalDateTime.now(KST_ZONE).hour in 6..18
@@ -125,8 +146,8 @@ internal fun parseExtendedHourlyForecast(items: List<FcstItem>): List<HourlyFore
         timeItems.forEach { item ->
             when (item.category) {
                 "TMP" -> item.fcstValue.toDoubleOrNull()?.let { temperature = it }
-                "SKY" -> item.fcstValue.toIntOrNull()?.let { sky = SkyCondition.fromCode(it) }
-                "PTY" -> item.fcstValue.toIntOrNull()?.let { pty = PrecipitationType.fromCode(it) }
+                "SKY" -> item.fcstValue.toSkyConditionOrNull()?.let { sky = it }
+                "PTY" -> item.fcstValue.toPrecipitationTypeOrNull()?.let { pty = it }
                 "POP" -> item.fcstValue.toIntOrNull()?.let { pop = it }
                 "SNO" -> item.fcstValue.toDoubleOrNull()?.let { sno = it }
                 "WSD" -> item.fcstValue.toDoubleOrNull()?.let { windSpeed = it }
@@ -178,12 +199,10 @@ internal fun parseDailyForecast(items: List<FcstItem>): List<DailyForecast> {
                 "POP" -> item.fcstValue.toIntOrNull()?.let { p ->
                     if (isAm) amPop = maxOf(amPop ?: p, p) else pmPop = maxOf(pmPop ?: p, p)
                 }
-                "SKY" -> item.fcstValue.toIntOrNull()?.let { code ->
-                    val s = SkyCondition.fromCode(code)
+                "SKY" -> item.fcstValue.toSkyConditionOrNull()?.let { s ->
                     if (isAm) amSky = s else pmSky = s
                 }
-                "PTY" -> item.fcstValue.toIntOrNull()?.let { code ->
-                    val p = PrecipitationType.fromCode(code)
+                "PTY" -> item.fcstValue.toPrecipitationTypeOrNull()?.let { p ->
                     if (isAm) amPty = p else pmPty = p
                 }
             }

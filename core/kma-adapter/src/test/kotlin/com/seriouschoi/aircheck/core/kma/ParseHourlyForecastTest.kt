@@ -59,11 +59,14 @@ class ParseHourlyForecastTest {
     }
 
     @Test
-    fun `정의되지 않은 코드는 null이다`() {
-        val result = parseExtendedHourlyForecast(listOf(item("SKY", "2"), item("PTY", "9"))).single()
+    fun `정의되지 않은 코드는 UNKNOWN이고 결측값은 null이다`() {
+        val unknown = parseExtendedHourlyForecast(listOf(item("SKY", "2"), item("PTY", "9"))).single()
+        assertEquals(SkyCondition.UNKNOWN, unknown.sky)
+        assertEquals(PrecipitationType.UNKNOWN, unknown.precipitationType)
 
-        assertNull(result.sky)
-        assertNull(result.precipitationType)
+        val missing = parseExtendedHourlyForecast(listOf(item("SKY", "-999"), item("PTY", "-999"))).single()
+        assertNull(missing.sky)
+        assertNull(missing.precipitationType)
     }
 
     @Test
