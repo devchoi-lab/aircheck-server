@@ -1,5 +1,6 @@
 package com.seriouschoi.aircheck.core.service
 
+import com.seriouschoi.aircheck.core.domain.model.PrecipitationType
 import com.seriouschoi.aircheck.core.domain.port.PushSubscriptionResult
 import com.seriouschoi.aircheck.core.domain.port.PushSubscriptionUseCase
 import com.seriouschoi.aircheck.core.domain.port.PushNotificationPort
@@ -75,7 +76,7 @@ class PushSubscriptionService(
                 if (current != null && temperature != null) {
                     val recommendation = buildRecommendation(temperature, air?.pm25)
                     val pm25Status = air?.pm25?.let { getPm25Status(it) } ?: "❓ 알 수 없음"
-                    val condition = current.weatherCondition?.let { it.emoji + " " + it.label } ?: "❓ 알 수 없음"
+                    val condition = current.precipitationType?.let { getPrecipitationText(it) } ?: "❓ 알 수 없음"
 
                     pushNotificationPort.sendWeatherSummary(
                         token = sub.fcmToken,
@@ -104,6 +105,18 @@ class PushSubscriptionService(
         pm25 <= 50 -> "😷 나쁨"
         pm25 <= 75 -> "🤢 매우 나쁨"
         else -> "☠️ 위험"
+    }
+
+    // 푸시 문구는 푸시 기능을 구현할 때 다시 정한다 (#119는 컴파일만 맞춤)
+    private fun getPrecipitationText(type: PrecipitationType): String = when (type) {
+        PrecipitationType.NONE -> "강수 없음"
+        PrecipitationType.RAIN -> "🌧️ 비"
+        PrecipitationType.RAIN_SNOW -> "🌨️ 비/눈"
+        PrecipitationType.SNOW -> "🌨️ 눈"
+        PrecipitationType.SHOWER -> "🌦️ 소나기"
+        PrecipitationType.RAINDROP -> "🌧️ 빗방울"
+        PrecipitationType.RAINDROP_SNOW_FLURRY -> "🌨️ 빗방울눈날림"
+        PrecipitationType.SNOW_FLURRY -> "🌨️ 눈날림"
     }
 
     private fun buildRecommendation(temp: Double, pm25: Int?): String {

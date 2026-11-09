@@ -3,7 +3,8 @@ package com.seriouschoi.aircheck.core.kma
 import com.seriouschoi.aircheck.core.domain.model.CurrentWeather
 import com.seriouschoi.aircheck.core.domain.model.DailyForecast
 import com.seriouschoi.aircheck.core.domain.model.HourlyForecast
-import com.seriouschoi.aircheck.core.domain.model.WeatherCondition
+import com.seriouschoi.aircheck.core.domain.model.PrecipitationType
+import com.seriouschoi.aircheck.core.domain.model.SkyCondition
 import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
 import com.seriouschoi.aircheck.core.kma.dto.FcstItem
 import com.seriouschoi.aircheck.core.kma.dto.NcstItem
@@ -81,11 +82,11 @@ internal fun LocalDateTime.toMidFcstTmFc(): String =
  * 초단기실황 항목에서 현재 날씨를 만든다.
  *
  * 항목이 없거나 숫자로 읽을 수 없으면 기본값(0 등)으로 채우지 않고 null로 둔다.
- * 초단기실황에는 하늘상태(SKY)가 없어 날씨는 강수형태(PTY)로 비/눈일 때만 만들고, 그 외에는 null.
+ * 초단기실황에는 하늘상태(SKY)가 없어 강수형태(PTY)만 기상청 값 그대로 담는다.
  */
 internal fun parseCurrentWeather(items: List<NcstItem>): CurrentWeather {
     var temperature: Double? = null; var humidity: Int? = null; var precipitation: Double? = null
-    var windSpeed: Double? = null; var windDirection: Int? = null; var pty: Int? = null
+    var windSpeed: Double? = null; var windDirection: Int? = null; var pty: PrecipitationType? = null
     items.forEach { item ->
         when (item.category) {
             "T1H" -> item.obsrValue.toDoubleOrNull()?.let { temperature = it }
@@ -93,7 +94,7 @@ internal fun parseCurrentWeather(items: List<NcstItem>): CurrentWeather {
             "RN1" -> item.obsrValue.toDoubleOrNull()?.let { precipitation = it }
             "WSD" -> item.obsrValue.toDoubleOrNull()?.let { windSpeed = it }
             "VEC" -> item.obsrValue.toIntOrNull()?.let { windDirection = it }
-            "PTY" -> item.obsrValue.toIntOrNull()?.let { pty = it }
+            "PTY" -> item.obsrValue.toIntOrNull()?.let { pty = PrecipitationType.fromCode(it) }
         }
     }
     val isDay = LocalDateTime.now(KST_ZONE).hour in 6..18
@@ -104,16 +105,9 @@ internal fun parseCurrentWeather(items: List<NcstItem>): CurrentWeather {
         humidity = humidity,
         windSpeed = windSpeed,
         windDirection = windDirection,
-        weatherCondition = pty?.let { precipitationCondition(it) },
+        precipitationType = pty,
         isDay = isDay
     )
-}
-
-/** 강수형태(PTY)로 알 수 있는 날씨. 비/눈이 아니면(강수 없음 포함) 하늘상태를 알 수 없으므로 null. */
-private fun precipitationCondition(pty: Int): WeatherCondition? = when (pty) {
-    1, 2, 5, 6 -> WeatherCondition.RAIN
-    3, 7 -> WeatherCondition.SNOW
-    else -> null
 }
 
 /**
@@ -126,13 +120,13 @@ internal fun parseExtendedHourlyForecast(items: List<FcstItem>): List<HourlyFore
     if (items.isEmpty()) return emptyList()
     return items.groupBy { "${it.fcstDate}_${it.fcstTime}" }.map { (timeKey, timeItems) ->
         val (fcstDate, fcstTime) = timeKey.split("_")
-        var temperature: Double? = null; var sky: Int? = null; var pty: Int? = null; var pop: Int? = null
+        var temperature: Double? = null; var sky: SkyCondition? = null; var pty: PrecipitationType? = null; var pop: Int? = null
         var sno: Double? = null; var windSpeed: Double? = null; var humidity: Int? = null
         timeItems.forEach { item ->
             when (item.category) {
                 "TMP" -> item.fcstValue.toDoubleOrNull()?.let { temperature = it }
-                "SKY" -> item.fcstValue.toIntOrNull()?.let { sky = it }
-                "PTY" -> item.fcstValue.toIntOrNull()?.let { pty = it }
+                "SKY" -> item.fcstValue.toIntOrNull()?.let { sky = SkyCondition.fromCode(it) }
+                "PTY" -> item.fcstValue.toIntOrNull()?.let { pty = PrecipitationType.fromCode(it) }
                 "POP" -> item.fcstValue.toIntOrNull()?.let { pop = it }
                 "SNO" -> item.fcstValue.toDoubleOrNull()?.let { sno = it }
                 "WSD" -> item.fcstValue.toDoubleOrNull()?.let { windSpeed = it }
@@ -148,7 +142,8 @@ internal fun parseExtendedHourlyForecast(items: List<FcstItem>): List<HourlyFore
             feelsLike = calculateFeelsLike(temperature, windSpeed, humidity),
             precipitationProbability = pop,
             snowfall = sno,
-            weatherCondition = toWeatherConditionOrNull(pty, sky)
+            sky = sky,
+            precipitationType = pty
         )
     }.sortedBy { it.time }.take(48)
 }
@@ -165,8 +160,8 @@ internal fun parseDailyForecast(items: List<FcstItem>): List<DailyForecast> {
         var minTemp: Double? = null
         var maxTemp: Double? = null
         var amPop: Int? = null; var pmPop: Int? = null
-        var amSky: Int? = null; var pmSky: Int? = null
-        var amPty: Int? = null; var pmPty: Int? = null
+        var amSky: SkyCondition? = null; var pmSky: SkyCondition? = null
+        var amPty: PrecipitationType? = null; var pmPty: PrecipitationType? = null
         dateItems.forEach { item ->
             val isAm = (item.fcstTime.substring(0, 2).toIntOrNull() ?: 0) < 12
             when (item.category) {
@@ -183,10 +178,12 @@ internal fun parseDailyForecast(items: List<FcstItem>): List<DailyForecast> {
                 "POP" -> item.fcstValue.toIntOrNull()?.let { p ->
                     if (isAm) amPop = maxOf(amPop ?: p, p) else pmPop = maxOf(pmPop ?: p, p)
                 }
-                "SKY" -> item.fcstValue.toIntOrNull()?.let { s ->
+                "SKY" -> item.fcstValue.toIntOrNull()?.let { code ->
+                    val s = SkyCondition.fromCode(code)
                     if (isAm) amSky = s else pmSky = s
                 }
-                "PTY" -> item.fcstValue.toIntOrNull()?.let { p ->
+                "PTY" -> item.fcstValue.toIntOrNull()?.let { code ->
+                    val p = PrecipitationType.fromCode(code)
                     if (isAm) amPty = p else pmPty = p
                 }
             }
@@ -196,15 +193,11 @@ internal fun parseDailyForecast(items: List<FcstItem>): List<DailyForecast> {
             minTemp = minTemp,
             maxTemp = maxTemp,
             amPrecipProb = amPop, pmPrecipProb = pmPop,
-            amWeatherCondition = toWeatherConditionOrNull(amPty, amSky),
-            pmWeatherCondition = toWeatherConditionOrNull(pmPty, pmSky)
+            amSky = amSky, pmSky = pmSky,
+            amPrecipitationType = amPty, pmPrecipitationType = pmPty
         )
     }.sortedBy { it.date }.take(3)
 }
-
-/** 강수형태(PTY)와 하늘상태(SKY)가 모두 있을 때만 날씨를 만든다. 하나라도 없으면 null. */
-private fun toWeatherConditionOrNull(pty: Int?, sky: Int?): WeatherCondition? =
-    if (pty != null && sky != null) convertToWeatherCondition(pty, sky) else null
 
 // ── 공통 유틸 ─────────────────────────────────────────────────────────────────
 
@@ -229,17 +222,5 @@ internal fun calculateFeelsLike(temp: Double?, windSpeed: Double?, humidity: Int
             if (humidity == null) null
             else temp + 0.33 * (humidity / 100.0 * 6.105 * Math.exp(17.27 * temp / (237.7 + temp))) - 4.0
         else -> temp
-    }
-}
-
-internal fun convertToWeatherCondition(pty: Int, sky: Int): WeatherCondition = when (pty) {
-    1, 5 -> WeatherCondition.RAIN
-    2, 6 -> WeatherCondition.RAIN
-    3, 7 -> WeatherCondition.SNOW
-    else -> when (sky) {
-        1    -> WeatherCondition.CLEAR
-        3    -> WeatherCondition.PARTLY_CLOUDY
-        4    -> WeatherCondition.CLOUDY
-        else -> WeatherCondition.CLEAR
     }
 }

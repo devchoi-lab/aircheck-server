@@ -23,8 +23,8 @@ data class CurrentWeather(
     val windSpeed: Double?,
     @Schema(description = "풍향 (deg, 0~360). 16방위 변환: (deg + 11.25) / 22.5 → 정수 인덱스. 값이 없으면 null", example = "158", nullable = true)
     val windDirection: Int?,
-    @Schema(description = "날씨 상태. 초단기실황은 하늘상태(SKY)를 주지 않아 강수형태(PTY)로 비/눈일 때만 RAIN/SNOW. 강수 없음이거나 값이 없으면 null", nullable = true)
-    val weatherCondition: WeatherCondition?,
+    @Schema(description = "강수형태 (기상청 PTY). 초단기실황은 하늘상태(SKY)를 주지 않는다. 값이 없으면 null", nullable = true)
+    val precipitationType: PrecipitationType?,
     @Schema(description = "낮 여부. KST 기준 6~18시이면 true", example = "true")
     val isDay: Boolean
 )
@@ -39,8 +39,10 @@ data class HourlyForecast(
     val precipitationProbability: Int?,
     @Schema(description = "적설. 기상청 SNO는 범주 문자열이라 숫자로 읽을 수 없으면 null", nullable = true)
     val snowfall: Double?,
-    @Schema(description = "날씨. 하늘상태(SKY)나 강수형태(PTY) 값이 없으면 null", nullable = true)
-    val weatherCondition: WeatherCondition?
+    @Schema(description = "하늘상태 (기상청 SKY). 값이 없으면 null", nullable = true)
+    val sky: SkyCondition?,
+    @Schema(description = "강수형태 (기상청 PTY). 값이 없으면 null", nullable = true)
+    val precipitationType: PrecipitationType?
 )
 
 /**
@@ -57,41 +59,16 @@ data class DailyForecast(
     val amPrecipProb: Int?,
     @Schema(description = "오후(12시 이후) 강수확률 최댓값 (%). 오후 예보 값이 없으면 null", nullable = true)
     val pmPrecipProb: Int?,
-    @Schema(description = "오전 날씨. 하늘상태(SKY)나 강수형태(PTY) 값이 없으면 null", nullable = true)
-    val amWeatherCondition: WeatherCondition?,
-    @Schema(description = "오후 날씨. 하늘상태(SKY)나 강수형태(PTY) 값이 없으면 null", nullable = true)
-    val pmWeatherCondition: WeatherCondition?
+    @Schema(description = "오전 하늘상태 (기상청 SKY). 오전 예보 값이 없으면 null", nullable = true)
+    val amSky: SkyCondition?,
+    @Schema(description = "오후 하늘상태 (기상청 SKY). 오후 예보 값이 없으면 null", nullable = true)
+    val pmSky: SkyCondition?,
+    @Schema(description = "오전 강수형태 (기상청 PTY). 오전 예보 값이 없으면 null", nullable = true)
+    val amPrecipitationType: PrecipitationType?,
+    @Schema(description = "오후 강수형태 (기상청 PTY). 오후 예보 값이 없으면 null", nullable = true)
+    val pmPrecipitationType: PrecipitationType?
 )
 
-
-enum class WeatherCondition(val label: String, val emoji: String) {
-    CLEAR("맑음", "☀️"),
-    PARTLY_CLOUDY("구름 조금", "⛅"),
-    CLOUDY("흐림", "☁️"),
-    FOG("안개", "🌫️"),
-    DRIZZLE("이슬비", "🌧️"),
-    RAIN("비", "🌧️"),
-    HEAVY_RAIN("폭우", "⛈️"),
-    SNOW("눈", "🌨️"),
-    HEAVY_SNOW("폭설", "❄️"),
-    THUNDERSTORM("뇌우", "⛈️");
-
-    companion object {
-        fun fromWeatherCode(code: Int): WeatherCondition = when (code) {
-            0 -> CLEAR
-            1, 2 -> PARTLY_CLOUDY
-            3 -> CLOUDY
-            45, 48 -> FOG
-            51, 53, 55 -> DRIZZLE
-            61, 63, 80, 81 -> RAIN
-            65, 82 -> HEAVY_RAIN
-            71, 73, 85 -> SNOW
-            75, 86 -> HEAVY_SNOW
-            95, 96, 99 -> THUNDERSTORM
-            else -> CLOUDY
-        }
-    }
-}
 
 data class CombinedWeatherResult(
     val kmaWeather: KmaWeatherResponse?,

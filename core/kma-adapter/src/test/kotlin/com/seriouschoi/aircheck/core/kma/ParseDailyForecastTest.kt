@@ -1,6 +1,7 @@
 package com.seriouschoi.aircheck.core.kma
 
-import com.seriouschoi.aircheck.core.domain.model.WeatherCondition
+import com.seriouschoi.aircheck.core.domain.model.PrecipitationType
+import com.seriouschoi.aircheck.core.domain.model.SkyCondition
 import com.seriouschoi.aircheck.core.kma.dto.FcstItem
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -95,9 +96,11 @@ class ParseDailyForecastTest {
         ).single()
 
         assertNull(result.amPrecipProb)
-        assertNull(result.amWeatherCondition)
+        assertNull(result.amSky)
+        assertNull(result.amPrecipitationType)
         assertEquals(60, result.pmPrecipProb)
-        assertEquals(WeatherCondition.CLOUDY, result.pmWeatherCondition)
+        assertEquals(SkyCondition.OVERCAST, result.pmSky)
+        assertEquals(PrecipitationType.NONE, result.pmPrecipitationType)
     }
 
     @Test
@@ -115,7 +118,7 @@ class ParseDailyForecastTest {
     }
 
     @Test
-    fun `하늘상태나 강수형태 중 하나만 있으면 날씨는 null이다`() {
+    fun `하늘상태와 강수형태는 서로 영향을 주지 않는다`() {
         val result = parseDailyForecast(
             listOf(
                 item("SKY", "0900", "1"),
@@ -123,8 +126,10 @@ class ParseDailyForecastTest {
             )
         ).single()
 
-        assertNull(result.amWeatherCondition)
-        assertNull(result.pmWeatherCondition)
+        assertEquals(SkyCondition.CLEAR, result.amSky)
+        assertNull(result.amPrecipitationType)
+        assertNull(result.pmSky)
+        assertEquals(PrecipitationType.NONE, result.pmPrecipitationType)
     }
 
     @Test
