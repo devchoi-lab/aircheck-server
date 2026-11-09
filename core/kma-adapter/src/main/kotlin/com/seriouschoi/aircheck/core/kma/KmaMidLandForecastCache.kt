@@ -17,7 +17,8 @@ import java.time.LocalDate
 /**
  * 중기육상예보 조회 캐시 빈.
  *
- * 캐시 키: doCode — 법정동 도 코드 기준이므로 lat/lng 정규화 없이도 캐시 효율이 높음.
+ * 캐시 키: sigunguCode — 법정동 코드 기준이므로 lat/lng 정규화 없이도 캐시 효율이 높음.
+ * 강원도는 시군구로 영동/영서 예보구역이 갈리므로 도 코드(doCode)가 아니라 시군구 코드로 구분한다.
  */
 @Component
 @ConditionalOnProperty(name = ["weather.provider"], havingValue = "kma")
