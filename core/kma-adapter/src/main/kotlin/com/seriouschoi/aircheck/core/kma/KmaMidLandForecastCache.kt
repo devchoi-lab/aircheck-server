@@ -2,9 +2,12 @@ package com.seriouschoi.aircheck.core.kma
 
 import com.seriouschoi.aircheck.core.domain.model.MidLandForecast
 import com.seriouschoi.aircheck.core.domain.model.MidLandForecastDay
+import com.seriouschoi.aircheck.core.domain.model.MidLandWeather
+import com.seriouschoi.aircheck.core.domain.model.MidLandWeatherType
 import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
 import com.seriouschoi.aircheck.core.kma.dto.KmaApiResponse
 import com.seriouschoi.aircheck.core.kma.dto.MidLandFcstItem
+import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cache.annotation.Cacheable
@@ -85,22 +88,36 @@ class KmaMidLandForecastCache(
     }
 }
 
+private val midLandLogger = KotlinLogging.logger {}
+
+/**
+ * 기상청 날씨 문구를 타입과 원문으로 만든다.
+ * 값이 없거나 비어 있으면 null, 문서에 없는 문구이면 UNKNOWN(경고 로그에 원문을 남김). 원문은 가공하지 않는다.
+ */
+private fun String?.toMidLandWeather(): MidLandWeather? {
+    if (isNullOrBlank()) return null
+    val type = MidLandWeatherType.fromKmaText(this)
+    if (type == MidLandWeatherType.UNKNOWN) midLandLogger.warn { "정의되지 않은 중기육상예보 날씨 문구: $this" }
+    return MidLandWeather(type, this)
+}
+
 /**
  * 중기육상예보 항목에서 3~10일 예보를 만든다.
  * 값이 없으면 기본값(0, "")으로 채우지 않고 null로 둔다. 8~10일은 단일값을 오전/오후에 공통으로 쓴다.
+ * 날씨는 기상청 문구 원문과 타입을 함께 담는다.
  */
 internal fun parseMidLandForecast(item: MidLandFcstItem, baseDate: LocalDate): MidLandForecast {
     val days = (3..10).map { offset ->
         val date = baseDate.plusDays(offset.toLong())
         when (offset) {
-            3  -> MidLandForecastDay(date, item.rnSt3Am, item.rnSt3Pm, item.wf3Am, item.wf3Pm)
-            4  -> MidLandForecastDay(date, item.rnSt4Am, item.rnSt4Pm, item.wf4Am, item.wf4Pm)
-            5  -> MidLandForecastDay(date, item.rnSt5Am, item.rnSt5Pm, item.wf5Am, item.wf5Pm)
-            6  -> MidLandForecastDay(date, item.rnSt6Am, item.rnSt6Pm, item.wf6Am, item.wf6Pm)
-            7  -> MidLandForecastDay(date, item.rnSt7Am, item.rnSt7Pm, item.wf7Am, item.wf7Pm)
-            8  -> MidLandForecastDay(date, item.rnSt8, item.rnSt8, item.wf8, item.wf8)
-            9  -> MidLandForecastDay(date, item.rnSt9, item.rnSt9, item.wf9, item.wf9)
-            10 -> MidLandForecastDay(date, item.rnSt10, item.rnSt10, item.wf10, item.wf10)
+            3  -> MidLandForecastDay(date, item.rnSt3Am, item.rnSt3Pm, item.wf3Am.toMidLandWeather(), item.wf3Pm.toMidLandWeather())
+            4  -> MidLandForecastDay(date, item.rnSt4Am, item.rnSt4Pm, item.wf4Am.toMidLandWeather(), item.wf4Pm.toMidLandWeather())
+            5  -> MidLandForecastDay(date, item.rnSt5Am, item.rnSt5Pm, item.wf5Am.toMidLandWeather(), item.wf5Pm.toMidLandWeather())
+            6  -> MidLandForecastDay(date, item.rnSt6Am, item.rnSt6Pm, item.wf6Am.toMidLandWeather(), item.wf6Pm.toMidLandWeather())
+            7  -> MidLandForecastDay(date, item.rnSt7Am, item.rnSt7Pm, item.wf7Am.toMidLandWeather(), item.wf7Pm.toMidLandWeather())
+            8  -> item.wf8.toMidLandWeather().let { MidLandForecastDay(date, item.rnSt8, item.rnSt8, it, it) }
+            9  -> item.wf9.toMidLandWeather().let { MidLandForecastDay(date, item.rnSt9, item.rnSt9, it, it) }
+            10 -> item.wf10.toMidLandWeather().let { MidLandForecastDay(date, item.rnSt10, item.rnSt10, it, it) }
             else -> MidLandForecastDay(date, null, null, null, null)
         }
     }

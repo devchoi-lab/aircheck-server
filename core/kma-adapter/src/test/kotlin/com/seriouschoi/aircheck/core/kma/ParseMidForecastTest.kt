@@ -1,8 +1,11 @@
 package com.seriouschoi.aircheck.core.kma
 
+import com.seriouschoi.aircheck.core.domain.model.MidLandWeather
+import com.seriouschoi.aircheck.core.domain.model.MidLandWeatherType
 import com.seriouschoi.aircheck.core.kma.dto.MidLandFcstItem
 import com.seriouschoi.aircheck.core.kma.dto.MidTaItem
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -25,8 +28,8 @@ class ParseMidForecastTest {
         assertEquals(LocalDate.of(2026, 3, 23), day3.date)
         assertEquals(10, day3.amPrecipProb)
         assertEquals(20, day3.pmPrecipProb)
-        assertEquals("맑음", day3.amWeather)
-        assertEquals("구름많음", day3.pmWeather)
+        assertEquals(MidLandWeather(MidLandWeatherType.CLEAR, "맑음"), day3.amWeather)
+        assertEquals(MidLandWeather(MidLandWeatherType.MOSTLY_CLOUDY, "구름많음"), day3.pmWeather)
         assertEquals(8, result.days.size)
     }
 
@@ -52,8 +55,47 @@ class ParseMidForecastTest {
         val day8 = result.days.single { it.date == LocalDate.of(2026, 3, 28) }
         assertEquals(40, day8.amPrecipProb)
         assertEquals(40, day8.pmPrecipProb)
-        assertEquals("흐림", day8.amWeather)
-        assertEquals("흐림", day8.pmWeather)
+        assertEquals(MidLandWeather(MidLandWeatherType.OVERCAST, "흐림"), day8.amWeather)
+        assertEquals(MidLandWeather(MidLandWeatherType.OVERCAST, "흐림"), day8.pmWeather)
+    }
+
+    @Test
+    fun `중기육상예보 날씨 문서의 모든 문구가 UNKNOWN이 아닌 타입이 된다`() {
+        val texts = listOf(
+            "맑음", "구름많음", "구름많고 비", "구름많고 눈", "구름많고 비/눈", "구름많고 소나기",
+            "흐림", "흐리고 비", "흐리고 눈", "흐리고 비/눈", "흐리고 소나기"
+        )
+        texts.forEach { text ->
+            val result = parseMidLandForecast(MidLandFcstItem(regId = "11B00000", wf3Am = text), baseDate)
+            val weather = result.days.first().amWeather
+            assertEquals(text, weather?.text)
+            assertNotEquals(MidLandWeatherType.UNKNOWN, weather?.type, text)
+        }
+        assertEquals(texts.size, texts.map { MidLandWeatherType.fromKmaText(it) }.toSet().size)
+    }
+
+    @Test
+    fun `문서에 없는 문구는 UNKNOWN이고 원문이 그대로 남는다`() {
+        val result = parseMidLandForecast(
+            MidLandFcstItem(regId = "11B00000", wf3Am = "흐리고 우박"),
+            baseDate
+        )
+
+        assertEquals(MidLandWeather(MidLandWeatherType.UNKNOWN, "흐리고 우박"), result.days.first().amWeather)
+    }
+
+    @Test
+    fun `원문은 공백을 정리하지 않고 그대로 담는다`() {
+        val result = parseMidLandForecast(MidLandFcstItem(regId = "11B00000", wf3Am = " 맑음"), baseDate)
+
+        assertEquals(MidLandWeather(MidLandWeatherType.UNKNOWN, " 맑음"), result.days.first().amWeather)
+    }
+
+    @Test
+    fun `빈 문자열은 가져오지 못한 값이므로 null이다`() {
+        val result = parseMidLandForecast(MidLandFcstItem(regId = "11B00000", wf3Am = ""), baseDate)
+
+        assertNull(result.days.first().amWeather)
     }
 
     @Test
