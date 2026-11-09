@@ -39,22 +39,26 @@ class KmaMidTaForecastCache(
             parseMidTaForecast(item, base.toLocalDate())
         }
     }
+}
 
-    private fun parseMidTaForecast(item: MidTaItem, baseDate: LocalDate): MidTaForecast {
-        val days = (3..10).map { offset ->
-            val date = baseDate.plusDays(offset.toLong())
-            when (offset) {
-                3  -> MidTaForecastDay(date, item.taMin3  ?: 0, item.taMax3  ?: 0)
-                4  -> MidTaForecastDay(date, item.taMin4  ?: 0, item.taMax4  ?: 0)
-                5  -> MidTaForecastDay(date, item.taMin5  ?: 0, item.taMax5  ?: 0)
-                6  -> MidTaForecastDay(date, item.taMin6  ?: 0, item.taMax6  ?: 0)
-                7  -> MidTaForecastDay(date, item.taMin7  ?: 0, item.taMax7  ?: 0)
-                8  -> MidTaForecastDay(date, item.taMin8  ?: 0, item.taMax8  ?: 0)
-                9  -> MidTaForecastDay(date, item.taMin9  ?: 0, item.taMax9  ?: 0)
-                10 -> MidTaForecastDay(date, item.taMin10 ?: 0, item.taMax10 ?: 0)
-                else -> MidTaForecastDay(date, 0, 0)
-            }
+/**
+ * 중기기온예보 항목에서 3~10일 예보를 만든다.
+ * 값이 없으면 0도로 채우지 않고 null로 둔다.
+ */
+internal fun parseMidTaForecast(item: MidTaItem, baseDate: LocalDate): MidTaForecast {
+    val days = (3..10).map { offset ->
+        val date = baseDate.plusDays(offset.toLong())
+        when (offset) {
+            3  -> MidTaForecastDay(date, item.taMin3, item.taMax3)
+            4  -> MidTaForecastDay(date, item.taMin4, item.taMax4)
+            5  -> MidTaForecastDay(date, item.taMin5, item.taMax5)
+            6  -> MidTaForecastDay(date, item.taMin6, item.taMax6)
+            7  -> MidTaForecastDay(date, item.taMin7, item.taMax7)
+            8  -> MidTaForecastDay(date, item.taMin8, item.taMax8)
+            9  -> MidTaForecastDay(date, item.taMin9, item.taMax9)
+            10 -> MidTaForecastDay(date, item.taMin10, item.taMax10)
+            else -> MidTaForecastDay(date, null, null)
         }
-        return MidTaForecast(days)
     }
+    return MidTaForecast(days)
 }

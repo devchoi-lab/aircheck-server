@@ -5,33 +5,42 @@ import java.time.Instant
 import java.time.LocalDate
 
 
+/**
+ * 현재 날씨 (초단기실황).
+ * 기상청 응답에 해당 항목이 없거나 읽을 수 없으면 기본값으로 채우지 않고 null.
+ */
 @Schema(description = "현재 날씨")
 data class CurrentWeather(
-    @Schema(description = "기온 (℃)", example = "20.7")
-    val temperature: Double,
-    @Schema(description = "체감온도 (℃). 서버 계산값 — 기온 ≤10℃+풍속 ≥1.3m/s: Wind Chill, 기온 ≥27℃: Heat Index", example = "18.5")
-    val feelsLike: Double,
-    @Schema(description = "1시간 강수량 (mm). 강수 없으면 0.0", example = "0.0")
-    val precipitation: Double,
-    @Schema(description = "습도 (%)", example = "49")
-    val humidity: Int,
-    @Schema(description = "풍속 (m/s)", example = "1.8")
-    val windSpeed: Double,
-    @Schema(description = "풍향 (deg, 0~360). 16방위 변환: (deg + 11.25) / 22.5 → 정수 인덱스", example = "158")
-    val windDirection: Int,
-    @Schema(description = "날씨 상태. 초단기실황 특성상 PTY=0이면 항상 CLEAR (SKY 미제공)")
-    val weatherCondition: WeatherCondition,
+    @Schema(description = "기온 (℃). 값이 없으면 null", example = "20.7", nullable = true)
+    val temperature: Double?,
+    @Schema(description = "체감온도 (℃). 서버 계산값 — 기온 ≤10℃+풍속 ≥1.3m/s: Wind Chill, 기온 ≥27℃: Heat Index. 계산에 필요한 값이 없으면 null", example = "18.5", nullable = true)
+    val feelsLike: Double?,
+    @Schema(description = "1시간 강수량 (mm). 값이 없으면 null", example = "0.0", nullable = true)
+    val precipitation: Double?,
+    @Schema(description = "습도 (%). 값이 없으면 null", example = "49", nullable = true)
+    val humidity: Int?,
+    @Schema(description = "풍속 (m/s). 값이 없으면 null", example = "1.8", nullable = true)
+    val windSpeed: Double?,
+    @Schema(description = "풍향 (deg, 0~360). 16방위 변환: (deg + 11.25) / 22.5 → 정수 인덱스. 값이 없으면 null", example = "158", nullable = true)
+    val windDirection: Int?,
+    @Schema(description = "날씨 상태. 초단기실황은 하늘상태(SKY)를 주지 않아 강수형태(PTY)로 비/눈일 때만 RAIN/SNOW. 강수 없음이거나 값이 없으면 null", nullable = true)
+    val weatherCondition: WeatherCondition?,
     @Schema(description = "낮 여부. KST 기준 6~18시이면 true", example = "true")
     val isDay: Boolean
 )
 
 data class HourlyForecast(
     val time: Instant,
-    val temperature: Double,
-    val feelsLike: Double,
-    val precipitationProbability: Int,
-    val snowfall: Double,
-    val weatherCondition: WeatherCondition
+    @Schema(description = "기온 (℃). 값이 없으면 null", nullable = true)
+    val temperature: Double?,
+    @Schema(description = "체감온도 (℃). 계산에 필요한 값이 없으면 null", nullable = true)
+    val feelsLike: Double?,
+    @Schema(description = "강수확률 (%). 값이 없으면 null", nullable = true)
+    val precipitationProbability: Int?,
+    @Schema(description = "적설. 기상청 SNO는 범주 문자열이라 숫자로 읽을 수 없으면 null", nullable = true)
+    val snowfall: Double?,
+    @Schema(description = "날씨. 하늘상태(SKY)나 강수형태(PTY) 값이 없으면 null", nullable = true)
+    val weatherCondition: WeatherCondition?
 )
 
 /**
@@ -40,12 +49,18 @@ data class HourlyForecast(
 data class DailyForecast(
     @Schema(description = "예보 날짜 (KST 기준, YYYY-MM-DD). 최저/최고기온과 오전/오후 구분도 KST 하루 기준", example = "2026-03-20")
     val date: LocalDate,
-    val minTemp: Double,           // 최저기온
-    val maxTemp: Double,           // 최고기온
-    val amPrecipProb: Int,         // 오전 강수확률
-    val pmPrecipProb: Int,         // 오후 강수확률
-    val amWeatherCondition: WeatherCondition,
-    val pmWeatherCondition: WeatherCondition
+    @Schema(description = "최저기온 (℃). 기상청 응답에 값이 없으면 null", nullable = true)
+    val minTemp: Double?,
+    @Schema(description = "최고기온 (℃). 기상청 응답에 값이 없으면 null", nullable = true)
+    val maxTemp: Double?,
+    @Schema(description = "오전(12시 이전) 강수확률 최댓값 (%). 오전 예보 값이 없으면 null", nullable = true)
+    val amPrecipProb: Int?,
+    @Schema(description = "오후(12시 이후) 강수확률 최댓값 (%). 오후 예보 값이 없으면 null", nullable = true)
+    val pmPrecipProb: Int?,
+    @Schema(description = "오전 날씨. 하늘상태(SKY)나 강수형태(PTY) 값이 없으면 null", nullable = true)
+    val amWeatherCondition: WeatherCondition?,
+    @Schema(description = "오후 날씨. 하늘상태(SKY)나 강수형태(PTY) 값이 없으면 null", nullable = true)
+    val pmWeatherCondition: WeatherCondition?
 )
 
 

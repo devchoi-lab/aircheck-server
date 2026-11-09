@@ -13,11 +13,11 @@ data class MidTaForecast(
 
 /**
  * @param date       예보 날짜 (KST 기준). 발표일 + 3~10일
- * @param minTemp    최저기온 (℃)
- * @param maxTemp    최고기온 (℃)
+ * @param minTemp    최저기온 (℃). 값이 없으면 null
+ * @param maxTemp    최고기온 (℃). 값이 없으면 null
  */
 data class MidTaForecastDay(
     val date: LocalDate,
-    val minTemp: Int,
-    val maxTemp: Int
+    val minTemp: Int?,
+    val maxTemp: Int?
 )
