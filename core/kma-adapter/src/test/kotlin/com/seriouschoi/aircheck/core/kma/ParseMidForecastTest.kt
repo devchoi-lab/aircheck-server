@@ -85,17 +85,21 @@ class ParseMidForecastTest {
     }
 
     @Test
-    fun `원문은 공백을 정리하지 않고 그대로 담는다`() {
-        val result = parseMidLandForecast(MidLandFcstItem(regId = "11B00000", wf3Am = " 맑음"), baseDate)
+    fun `앞뒤 공백은 타입을 찾을 때만 무시하고 원문은 그대로 담는다`() {
+        val result = parseMidLandForecast(MidLandFcstItem(regId = "11B00000", wf3Am = " 맑음 "), baseDate)
 
-        assertEquals(MidLandWeather(MidLandWeatherType.UNKNOWN, " 맑음"), result.days.first().amWeather)
+        assertEquals(MidLandWeather(MidLandWeatherType.CLEAR, " 맑음 "), result.days.first().amWeather)
     }
 
     @Test
-    fun `빈 문자열은 가져오지 못한 값이므로 null이다`() {
-        val result = parseMidLandForecast(MidLandFcstItem(regId = "11B00000", wf3Am = ""), baseDate)
+    fun `빈 문자열과 공백만 있는 값은 가져오지 못한 값이므로 null이다`() {
+        val result = parseMidLandForecast(
+            MidLandFcstItem(regId = "11B00000", wf3Am = "", wf3Pm = "  "),
+            baseDate
+        )
 
         assertNull(result.days.first().amWeather)
+        assertNull(result.days.first().pmWeather)
     }
 
     @Test

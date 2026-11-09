@@ -92,11 +92,12 @@ private val midLandLogger = KotlinLogging.logger {}
 
 /**
  * 기상청 날씨 문구를 타입과 원문으로 만든다.
- * 값이 없거나 비어 있으면 null, 문서에 없는 문구이면 UNKNOWN(경고 로그에 원문을 남김). 원문은 가공하지 않는다.
+ * 값이 없거나 비어 있으면 null, 문서에 없는 문구이면 UNKNOWN(경고 로그에 원문을 남김).
+ * 타입을 찾을 때만 앞뒤 공백을 무시하고, text에는 원문을 가공하지 않고 그대로 담는다.
  */
 private fun String?.toMidLandWeather(): MidLandWeather? {
     if (isNullOrBlank()) return null
-    val type = MidLandWeatherType.fromKmaText(this)
+    val type = MidLandWeatherType.fromKmaText(trim())
     if (type == MidLandWeatherType.UNKNOWN) midLandLogger.warn { "정의되지 않은 중기육상예보 날씨 문구: $this" }
     return MidLandWeather(type, this)
 }
