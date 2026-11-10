@@ -51,12 +51,13 @@ class GetCombinedWeatherUseCase @Inject constructor(
             ))
         }
 
-        val airResult = airQualityPort.getAirQuality(location?.lat ?: lat, location?.lng ?: lng)
-        val airQuality = airResult.getOrNull()
-        if (airResult.isFailure) {
+        // 법정동을 찾지 못하면 대기질은 호출하지 않는다 (원본 좌표로 호출하면 캐시 키가 좌표 단위로 흩어진다)
+        val airResult = location?.let { airQualityPort.getAirQuality(it.lat, it.lng) }
+        val airQuality = airResult?.getOrNull()
+        if (airQuality == null) {
             errors.add(DataError(
                 errorCode = DataErrorCode.API_UNAVAILABLE,
-                errorId = log.errorWithId("대기질 조회 실패 (lat=$lat, lng=$lng)", airResult.exceptionOrNull())
+                errorId = log.errorWithId("대기질 조회 실패 (lat=$lat, lng=$lng)", airResult?.exceptionOrNull())
             ))
         }
 

@@ -26,6 +26,19 @@ class GetCombinedWeatherUseCaseTest {
     }
 
     @Test
+    fun `장소를 가져오지 못했을경우, 대기질을 조회하지 않는다`() {
+        val airRequests = mutableListOf<Pair<Double, Double>>()
+        val useCase = createUseCase(location = null, airRequests = airRequests)
+
+        useCase.execute(LAT, LNG)
+
+        assertTrue(
+            airRequests.isEmpty(),
+            "법정동을 찾지 못했는데 대기질을 ${airRequests}로 조회했습니다."
+        )
+    }
+
+    @Test
     fun `공기질 정보 불러오기를 실패해도, 날씨 정보에 영향을 주지 않는다`() {
         val weather = completeWeather()
         val useCase = createUseCase(
@@ -115,7 +128,9 @@ class GetCombinedWeatherUseCaseTest {
             lng = LNG
         ),
         weather: Result<KmaWeatherResponse> = Result.success(completeWeather()),
-        air: Result<AirQualityResponse?> = Result.success(mockk<AirQualityResponse>())
+        air: Result<AirQualityResponse> = Result.success(mockk<AirQualityResponse>()),
+        // 대기질 포트가 호출된 좌표를 받아 가고 싶을 때 넘긴다.
+        airRequests: MutableList<Pair<Double, Double>>? = null
     ): GetCombinedWeatherUseCase {
         val bjdPort = mockk<BjdPort>()
         val kmaWeatherPort = mockk<KmaWeatherPort>()
@@ -123,7 +138,10 @@ class GetCombinedWeatherUseCaseTest {
 
         every { bjdPort.locate(any(), any()) } returns location
         every { kmaWeatherPort.getWeather(any()) } returns weather
-        every { airQualityPort.getAirQuality(any(), any()) } returns air
+        every { airQualityPort.getAirQuality(any(), any()) } answers {
+            airRequests?.add(firstArg<Double>() to secondArg<Double>())
+            air
+        }
 
         return GetCombinedWeatherUseCase(
             bjdPort = bjdPort,

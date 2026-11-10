@@ -1,5 +1,6 @@
 package com.seriouschoi.aircheck.core.airkorea
 
+import com.seriouschoi.aircheck.core.domain.exception.AirQualityNotFoundException
 import com.seriouschoi.aircheck.core.domain.model.AirQualityResponse
 import com.seriouschoi.aircheck.core.domain.port.AirQualityPort
 import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
@@ -43,13 +44,17 @@ class AirKoreaAdapter(
             .map { it.key to it.value }
     }
 
-    override fun getAirQuality(lat: Double, lng: Double): Result<AirQualityResponse?> =
+    override fun getAirQuality(lat: Double, lng: Double): Result<AirQualityResponse> =
         Result.runCatching { fetchAirQuality(lat, lng) }
-            .onFailure { log.error("대기질 조회 실패 (lat=$lat, lng=$lng)", it) }
+            .onFailure {
+                // 데이터가 없는 것은 장애가 아니므로 에러 로그를 남기지 않는다
+                if (it is AirQualityNotFoundException) log.warn(it.message)
+                else log.error("대기질 조회 실패 (lat=$lat, lng=$lng)", it)
+            }
 
-    private fun fetchAirQuality(lat: Double, lng: Double): AirQualityResponse? {
+    private fun fetchAirQuality(lat: Double, lng: Double): AirQualityResponse {
         val nearbyStations = findNearestStations(lat, lng, limit = 5)
-        if (nearbyStations.isEmpty()) return null
+        if (nearbyStations.isEmpty()) throw AirQualityNotFoundException(lat, lng, "주변 측정소 없음")
         
         // 메인 측정소 (가장 가까운 곳)
         val (mainStation, mainInfo) = nearbyStations.first()
@@ -94,8 +99,7 @@ class AirKoreaAdapter(
         
         // 둘 다 없으면 실패
         if (pm10 == null && pm25 == null) {
-            log.warn("주변 {}개 측정소 모두 PM 데이터 없음 (lat={}, lng={})", nearbyStations.size, lat, lng)
-            return null
+            throw AirQualityNotFoundException(lat, lng, "주변 ${nearbyStations.size}개 측정소 모두 PM 데이터 없음")
         }
         
         return AirQualityResponse(
