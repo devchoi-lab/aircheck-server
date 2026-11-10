@@ -1,5 +1,11 @@
 server:
   port: 8080
+  # Spring Boot 기본 오류 응답(/error)에 예외 내용을 싣지 않는다.
+  # 기본값과 같지만, 디버깅 중 실수로 켜져 내부 정보가 응답에 나가는 것을 막기 위해 명시한다.
+  # (GlobalExceptionHandler가 처리하는 예외는 이 설정과 무관하게 고정 문구만 내린다)
+  error:
+    include-message: never
+    include-stacktrace: never
 
 spring:
   application:

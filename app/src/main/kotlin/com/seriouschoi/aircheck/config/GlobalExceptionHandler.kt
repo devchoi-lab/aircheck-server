@@ -1,5 +1,6 @@
 package com.seriouschoi.aircheck.config
 
+import com.seriouschoi.aircheck.core.domain.exception.DataNotFoundException
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -55,6 +56,18 @@ class GlobalExceptionHandler {
         log.warn("ResponseStatusException on ${request.method} ${request.requestURI}: $status ${e.reason}")
         return ResponseEntity.status(e.statusCode).body(
             ErrorResponse(status, reasonPhrase, reasonPhrase, request.requestURI)
+        )
+    }
+
+    @ExceptionHandler(DataNotFoundException::class)
+    fun handleDataNotFound(
+        e: DataNotFoundException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponse> {
+        // e.message에는 좌표 등 내부 정보가 있으므로 로그에만 남기고 응답에는 고정 문구를 쓴다
+        log.warn("${e.javaClass.simpleName} on ${request.method} ${request.requestURI}: ${e.message}")
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+            ErrorResponse(404, "Not Found", "요청한 데이터를 찾을 수 없습니다.", request.requestURI)
         )
     }
 
