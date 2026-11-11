@@ -68,7 +68,7 @@ class PushSubscriptionService(
 
         subscriptions.forEach { sub ->
             try {
-                val weather = getWeatherForecastUseCase.execute(sub.latitude, sub.longitude)
+                val weather = getWeatherForecastUseCase.execute(sub.latitude, sub.longitude).getOrNull()
                 val air = getAirQualityUseCase.execute(sub.latitude, sub.longitude).getOrNull()
 
                 val current = weather?.shortForecast?.current

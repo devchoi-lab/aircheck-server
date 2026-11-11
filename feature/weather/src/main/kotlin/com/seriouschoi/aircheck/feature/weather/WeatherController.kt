@@ -64,6 +64,10 @@ class WeatherController(
             responseCode = "200",
             description = "조회 성공",
             content = [Content(schema = Schema(implementation = KmaWeatherResponse::class))]
+        ),
+        ApiResponse(
+            responseCode = "404",
+            description = "해당 좌표의 법정동을 찾을 수 없음"
         )
     ])
     @GetMapping("/weather/forecast")
@@ -72,8 +76,8 @@ class WeatherController(
         @RequestParam lat: Double,
         @Parameter(description = "경도", example = "126.9780")
         @RequestParam lng: Double
-    ): ResponseEntity<KmaWeatherResponse?> =
-        ResponseEntity.ok(getWeatherForecastUseCase.execute(lat, lng))
+    ): ResponseEntity<KmaWeatherResponse> =
+        ResponseEntity.ok(getWeatherForecastUseCase.execute(lat, lng).getOrThrow())
 
     @Operation(
         summary = "대기질 조회",
