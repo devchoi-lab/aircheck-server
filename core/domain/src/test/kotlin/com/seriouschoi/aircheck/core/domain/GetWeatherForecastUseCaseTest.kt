@@ -2,7 +2,7 @@ package com.seriouschoi.aircheck.core.domain
 
 import com.seriouschoi.aircheck.core.domain.exception.LocationNotFoundException
 import com.seriouschoi.aircheck.core.domain.model.BjdLocation
-import com.seriouschoi.aircheck.core.domain.model.KmaWeatherResponse
+import com.seriouschoi.aircheck.core.domain.model.ShortForecast
 import com.seriouschoi.aircheck.core.domain.port.BjdPort
 import com.seriouschoi.aircheck.core.domain.port.KmaWeatherPort
 import com.seriouschoi.aircheck.core.domain.usecase.GetWeatherForecastUseCase
@@ -21,9 +21,9 @@ class GetWeatherForecastUseCaseTest {
 
         // 날씨 포트가 호출됐는지 확인하려고 호출된 법정동을 기록한다.
         val requested = mutableListOf<BjdLocation>()
-        every {
-            kmaWeatherPort.getWeather(capture(requested))
-        } returns Result.success(mockk<KmaWeatherResponse>())
+        every { kmaWeatherPort.getShortForecast(capture(requested)) } returns Result.success(mockk<ShortForecast>())
+        every { kmaWeatherPort.getMidLandForecast(capture(requested)) } returns Result.success(mockk())
+        every { kmaWeatherPort.getMidTaForecast(capture(requested)) } returns Result.success(mockk())
         val useCase = GetWeatherForecastUseCase(bjdPort, kmaWeatherPort)
 
         val result = useCase.execute(37.5, 127.0)
@@ -39,22 +39,25 @@ class GetWeatherForecastUseCaseTest {
     }
 
     @Test
-    fun `날씨 조회가 실패하면, 그 실패를 그대로 리턴한다`() {
+    fun `예보 하나가 실패해도, 나머지 예보는 그대로 리턴한다`() {
         val bjdPort = mockk<BjdPort>()
         val kmaWeatherPort = mockk<KmaWeatherPort>()
-        val failure = RuntimeException("api down")
-
+        val shortForecast = mockk<ShortForecast>()
         every { bjdPort.locate(any(), any()) } returns BjdLocation(
             doCode = 1100000000L,
             sigunguCode = 1168000000L,
             lat = 37.0,
             lng = 127.0
         )
-        every { kmaWeatherPort.getWeather(any()) } returns Result.failure(failure)
+        every { kmaWeatherPort.getShortForecast(any()) } returns Result.success(shortForecast)
+        every { kmaWeatherPort.getMidLandForecast(any()) } returns Result.failure(RuntimeException("api down"))
+        every { kmaWeatherPort.getMidTaForecast(any()) } returns Result.success(mockk())
         val useCase = GetWeatherForecastUseCase(bjdPort, kmaWeatherPort)
 
-        val result = useCase.execute(37.5, 127.0)
+        val weather = useCase.execute(37.5, 127.0).getOrThrow()
 
-        assertSame(failure, result.exceptionOrNull())
+        assertSame(shortForecast, weather.shortForecast)
+        assertNull(weather.midLandForecast)
+        assertNotNull(weather.midTaForecast)
     }
 }
