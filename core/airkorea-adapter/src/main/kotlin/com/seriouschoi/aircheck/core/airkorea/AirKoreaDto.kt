@@ -26,13 +26,13 @@ internal data class AirKoreaItemsDto(val items: List<AirKoreaItemDto> = emptyLis
  * 현재 화면에 1시간 농도(pm10Value)와 24시간 등급(pm10Grade)을 함께 쓰고 있어 시간 기준이 다름 — 추후 검토 필요.
  *
  * Flag 필드: 값이 있으면 비정상 상태 (점검및교정/장비점검/자료이상/통신장애). null이면 정상.
- * AirQualityResponse에 MeasurementFlag enum으로 변환하여 전달.
+ * AirQuality에 MeasurementFlag enum으로 변환하여 전달.
  */
 @Serializable
 internal data class AirKoreaItemDto(
     /** 측정소명 (예: "중구", "강남구"). ver≥1.4부터 응답에 포함 */
     val stationName: String = "",
-    /** 측정소 코드. ver≥1.4부터 응답에 포함. 현재 AirQualityResponse에 미전달 */
+    /** 측정소 코드. ver≥1.4부터 응답에 포함. 현재 AirQuality에 미전달 */
     val stationCode: String = "",
     /** 시도명 (예: "서울", "경기"). API 응답이 아닌 StationInfo에서 채워짐 */
     val sidoName: String = "",
@@ -52,7 +52,7 @@ internal data class AirKoreaItemDto(
     val pm10Value: String = "-",
     /**
      * PM10 24시간 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨).
-     * 주의: pm10Value(1시간 농도)와 시간 기준이 다름. AirQualityResponse에 미전달 (1시간 등급 pm10Grade1h 사용).
+     * 주의: pm10Value(1시간 농도)와 시간 기준이 다름. AirQuality에 미전달 (1시간 등급 pm10Grade1h 사용).
      * 파싱: toIntOrNull()
      */
     val pm10Grade: String = "-",
@@ -75,7 +75,7 @@ internal data class AirKoreaItemDto(
     val pm25Value: String = "-",
     /**
      * PM2.5 24시간 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨).
-     * 주의: pm25Value(1시간 농도)와 시간 기준이 다름. AirQualityResponse에 미전달 (1시간 등급 pm25Grade1h 사용).
+     * 주의: pm25Value(1시간 농도)와 시간 기준이 다름. AirQuality에 미전달 (1시간 등급 pm25Grade1h 사용).
      * 파싱: toIntOrNull()
      */
     val pm25Grade: String = "-",
