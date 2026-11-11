@@ -5,8 +5,8 @@ package com.seriouschoi.aircheck.core.domain.model
  * 법정동을 찾지 못한 경우는 부분 결과가 아니라 전체 실패([com.seriouschoi.aircheck.core.domain.exception.LocationNotFoundException])다.
  */
 data class CombinedWeatherResult(
-    val kmaWeather: KmaWeatherResponse,
-    val airQuality: AirQualityResponse?,
+    val kmaWeather: KmaWeather,
+    val airQuality: AirQuality?,
     val errors: List<DataError> = emptyList()
 )
 

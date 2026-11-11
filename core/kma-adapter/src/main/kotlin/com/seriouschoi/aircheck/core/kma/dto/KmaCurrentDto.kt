@@ -24,7 +24,7 @@ import kotlinx.serialization.Serializable
  * ※ +900 이상/-900 이하 값은 Missing(관측 불가)으로 처리.
  */
 @Serializable
-data class NcstItem(
+data class NcstDto(
     /** 발표일자 (yyyyMMdd, KST). 예: "20210628" */
     val baseDate: String,
     /**

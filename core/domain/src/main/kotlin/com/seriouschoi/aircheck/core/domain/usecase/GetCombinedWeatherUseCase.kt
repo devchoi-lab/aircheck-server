@@ -3,7 +3,7 @@ package com.seriouschoi.aircheck.core.domain.usecase
 import com.seriouschoi.aircheck.core.domain.exception.LocationNotFoundException
 import com.seriouschoi.aircheck.core.domain.model.CombinedWeatherResult
 import com.seriouschoi.aircheck.core.domain.model.DataErrorTarget
-import com.seriouschoi.aircheck.core.domain.model.KmaWeatherResponse
+import com.seriouschoi.aircheck.core.domain.model.KmaWeather
 import com.seriouschoi.aircheck.core.domain.model.toDataError
 import com.seriouschoi.aircheck.core.domain.port.AirQualityPort
 import com.seriouschoi.aircheck.core.domain.port.BjdPort
@@ -46,7 +46,7 @@ class GetCombinedWeatherUseCase @Inject constructor(
 
         return Result.success(
             CombinedWeatherResult(
-                kmaWeather = KmaWeatherResponse(
+                kmaWeather = KmaWeather(
                     shortForecast = short.getOrNull(),
                     midLandForecast = midLand.getOrNull(),
                     midTaForecast = midTa.getOrNull()

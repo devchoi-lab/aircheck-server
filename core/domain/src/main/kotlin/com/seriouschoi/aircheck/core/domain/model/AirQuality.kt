@@ -38,7 +38,7 @@ enum class MeasurementFlag(val apiValue: String) {
  * 이 경우 pm10Station/pm25Station에 해당 측정소 정보가 표시됩니다.
  */
 @Schema(description = "대기질 정보")
-data class AirQualityResponse(
+data class AirQuality(
     @Schema(description = "메인 측정소 이름", example = "중구")
     val stationName: String,
 

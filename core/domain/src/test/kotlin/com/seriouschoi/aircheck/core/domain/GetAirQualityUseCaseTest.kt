@@ -1,7 +1,7 @@
 package com.seriouschoi.aircheck.core.domain
 
 import com.seriouschoi.aircheck.core.domain.exception.LocationNotFoundException
-import com.seriouschoi.aircheck.core.domain.model.AirQualityResponse
+import com.seriouschoi.aircheck.core.domain.model.AirQuality
 import com.seriouschoi.aircheck.core.domain.model.BjdLocation
 import com.seriouschoi.aircheck.core.domain.port.AirQualityPort
 import com.seriouschoi.aircheck.core.domain.port.BjdPort
@@ -24,7 +24,7 @@ class GetAirQualityUseCaseTest {
         val requestedLats = mutableListOf<Double>()
         every {
             airQualityPort.getAirQuality(capture(requestedLats), any())
-        } returns Result.success(mockk<AirQualityResponse>())
+        } returns Result.success(mockk<AirQuality>())
         val useCase = GetAirQualityUseCase(bjdPort, airQualityPort)
 
         val result = useCase.execute(37.5, 127.0)
@@ -43,7 +43,7 @@ class GetAirQualityUseCaseTest {
     fun `법정동을 찾으면, 법정동 대표 좌표로 대기질을 조회한다`() {
         val bjdPort = mockk<BjdPort>()
         val airQualityPort = mockk<AirQualityPort>()
-        val airQuality = mockk<AirQualityResponse>()
+        val airQuality = mockk<AirQuality>()
         every { bjdPort.locate(any(), any()) } returns BjdLocation(
             doCode = 1100000000L,
             sigunguCode = 1168000000L,

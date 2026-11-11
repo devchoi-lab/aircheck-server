@@ -4,8 +4,8 @@ import com.seriouschoi.aircheck.util.kma.region.KmaMidRegionMapper
 import com.seriouschoi.aircheck.core.domain.model.MidTaForecast
 import com.seriouschoi.aircheck.core.domain.model.MidTaForecastDay
 import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
-import com.seriouschoi.aircheck.core.kma.dto.KmaApiResponse
-import com.seriouschoi.aircheck.core.kma.dto.MidTaItem
+import com.seriouschoi.aircheck.core.kma.dto.KmaApiDto
+import com.seriouschoi.aircheck.core.kma.dto.MidTaDto
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cache.annotation.Cacheable
@@ -30,7 +30,7 @@ class KmaMidTaForecastCache(
                 regId = regId, tmFc = base.toMidFcstTmFc()
             )
             check(response.isNotEmpty()) { "KMA mid-ta: empty response" }
-            val parsed = forecastJson.decodeFromString<KmaApiResponse<MidTaItem>>(response)
+            val parsed = forecastJson.decodeFromString<KmaApiDto<MidTaDto>>(response)
             check(parsed.response.header.resultCode == "00") {
                 "KMA mid-ta error: ${parsed.response.header.resultMsg}"
             }
@@ -45,7 +45,7 @@ class KmaMidTaForecastCache(
  * 중기기온예보 항목에서 3~10일 예보를 만든다.
  * 값이 없으면 0도로 채우지 않고 null로 둔다.
  */
-internal fun parseMidTaForecast(item: MidTaItem, baseDate: LocalDate): MidTaForecast {
+internal fun parseMidTaForecast(item: MidTaDto, baseDate: LocalDate): MidTaForecast {
     val days = (3..10).map { offset ->
         val date = baseDate.plusDays(offset.toLong())
         when (offset) {

@@ -1,7 +1,7 @@
 package com.seriouschoi.aircheck.core.airkorea
 
 import com.seriouschoi.aircheck.core.domain.exception.AirQualityNotFoundException
-import com.seriouschoi.aircheck.core.domain.model.AirQualityResponse
+import com.seriouschoi.aircheck.core.domain.model.AirQuality
 import com.seriouschoi.aircheck.core.domain.port.AirQualityPort
 import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
 import kotlinx.serialization.json.Json
@@ -44,7 +44,7 @@ class AirKoreaAdapter(
             .map { it.key to it.value }
     }
 
-    override fun getAirQuality(lat: Double, lng: Double): Result<AirQualityResponse> =
+    override fun getAirQuality(lat: Double, lng: Double): Result<AirQuality> =
         Result.runCatching { fetchAirQuality(lat, lng) }
             .onFailure {
                 // 데이터가 없는 것은 장애가 아니므로 에러 로그를 남기지 않는다
@@ -52,13 +52,13 @@ class AirKoreaAdapter(
                 else log.error("대기질 조회 실패 (lat=$lat, lng=$lng)", it)
             }
 
-    private fun fetchAirQuality(lat: Double, lng: Double): AirQualityResponse {
+    private fun fetchAirQuality(lat: Double, lng: Double): AirQuality {
         val nearbyStations = findNearestStations(lat, lng, limit = 5)
         if (nearbyStations.isEmpty()) throw AirQualityNotFoundException(lat, lng, "주변 측정소 없음")
         
         // 메인 측정소 (가장 가까운 곳)
         val (mainStation, mainInfo) = nearbyStations.first()
-        val mainData: AirKoreaItem? = fetchRawData(mainStation)
+        val mainData: AirKoreaItemDto? = fetchRawData(mainStation)
         
         // 결과 변수 (기본값: 메인 측정소)
         var pm10: Int? = mainData?.pm10Value?.toIntOrNull()
@@ -102,7 +102,7 @@ class AirKoreaAdapter(
             throw AirQualityNotFoundException(lat, lng, "주변 ${nearbyStations.size}개 측정소 모두 PM 데이터 없음")
         }
         
-        return AirQualityResponse(
+        return AirQuality(
             stationName = mainStation,
             sidoName = mainInfo.sidoName,
             dataTime = dataTime.kstToInstant(),
@@ -135,9 +135,9 @@ class AirKoreaAdapter(
     }
     
     /**
-     * 측정소에서 원시 데이터 조회 (AirKoreaItem 반환)
+     * 측정소에서 원시 데이터 조회 (AirKoreaItemDto 반환)
      */
-    private fun fetchRawData(stationName: String): AirKoreaItem? {
+    private fun fetchRawData(stationName: String): AirKoreaItemDto? {
         val startTime = System.currentTimeMillis()
 
         return try {
@@ -151,7 +151,7 @@ class AirKoreaAdapter(
                 ver = "1.5"
             )
 
-            val parsed = json.decodeFromString<AirKoreaResponse>(response)
+            val parsed = json.decodeFromString<AirKoreaDto>(response)
             apiUsagePort?.recordSuccess(API_TYPE, System.currentTimeMillis() - startTime)
             parsed.response?.body?.items?.firstOrNull()
         } catch (e: Exception) {

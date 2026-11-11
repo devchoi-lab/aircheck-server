@@ -5,9 +5,9 @@ import com.seriouschoi.aircheck.core.domain.model.DailyForecast
 import com.seriouschoi.aircheck.core.domain.model.HourlyForecast
 import com.seriouschoi.aircheck.core.domain.model.ShortForecast
 import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
-import com.seriouschoi.aircheck.core.kma.dto.FcstItem
-import com.seriouschoi.aircheck.core.kma.dto.KmaApiResponse
-import com.seriouschoi.aircheck.core.kma.dto.NcstItem
+import com.seriouschoi.aircheck.core.kma.dto.FcstDto
+import com.seriouschoi.aircheck.core.kma.dto.KmaApiDto
+import com.seriouschoi.aircheck.core.kma.dto.NcstDto
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cache.annotation.Cacheable
@@ -35,7 +35,7 @@ class KmaShortForecastCache(
         val (vilageFcstDate, vilageFcstTime) = calculateVilageFcstBaseDateTime()
 
         val currentWeather: CurrentWeather = fetchCurrentWeather(grid.nx, grid.ny, baseDate, baseTime)
-        val vilageFcstItems: List<FcstItem> = fetchVilageFcstItems(grid.nx, grid.ny, vilageFcstDate, vilageFcstTime)
+        val vilageFcstItems: List<FcstDto> = fetchVilageFcstItems(grid.nx, grid.ny, vilageFcstDate, vilageFcstTime)
         val hourlyForecast: List<HourlyForecast> = parseExtendedHourlyForecast(vilageFcstItems)
         val dailyForecast: List<DailyForecast> = parseDailyForecast(vilageFcstItems)
 
@@ -52,7 +52,7 @@ class KmaShortForecastCache(
                 serviceKey = apiKey, pageNo = 1, numOfRows = 60, dataType = "JSON",
                 baseDate = baseDate, baseTime = baseTime, nx = nx, ny = ny
             )
-            val parsed = forecastJson.decodeFromString<KmaApiResponse<NcstItem>>(response)
+            val parsed = forecastJson.decodeFromString<KmaApiDto<NcstDto>>(response)
             check(parsed.response.header.resultCode == "00") {
                 "KMA NCST error: ${parsed.response.header.resultMsg}"
             }
@@ -62,13 +62,13 @@ class KmaShortForecastCache(
     /**
      * 단기예보조회. 최대 +5일 예보
      */
-    private fun fetchVilageFcstItems(nx: Int, ny: Int, baseDate: String, baseTime: String): List<FcstItem> =
+    private fun fetchVilageFcstItems(nx: Int, ny: Int, baseDate: String, baseTime: String): List<FcstDto> =
         runWithUsage("KMA_VILAGE_FCST", apiUsagePort) {
             val response = kmaApi.getVilageFcst(
                 serviceKey = apiKey, pageNo = 1, numOfRows = 1000, dataType = "JSON",
                 baseDate = baseDate, baseTime = baseTime, nx = nx, ny = ny
             )
-            val parsed: KmaApiResponse<FcstItem> = forecastJson.decodeFromString<KmaApiResponse<FcstItem>>(response)
+            val parsed: KmaApiDto<FcstDto> = forecastJson.decodeFromString<KmaApiDto<FcstDto>>(response)
             check(parsed.response.header.resultCode == "00") {
                 "KMA vilage fcst error: ${parsed.response.header.resultMsg}"
             }

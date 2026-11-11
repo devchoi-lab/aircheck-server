@@ -1,7 +1,7 @@
 package com.seriouschoi.aircheck.core.domain
 
 import com.seriouschoi.aircheck.core.domain.exception.LocationNotFoundException
-import com.seriouschoi.aircheck.core.domain.model.AirQualityResponse
+import com.seriouschoi.aircheck.core.domain.model.AirQuality
 import com.seriouschoi.aircheck.core.domain.model.BjdLocation
 import com.seriouschoi.aircheck.core.domain.model.CombinedWeatherResult
 import com.seriouschoi.aircheck.core.domain.model.DataErrorTarget
@@ -71,7 +71,7 @@ class GetCombinedWeatherUseCaseTest {
 
     @Test
     fun `날씨 정보 불러오기를 모두 실패해도, 공기질 정보에 영향을 주지 않는다`() {
-        val airQuality = mockk<AirQualityResponse>()
+        val airQuality = mockk<AirQuality>()
         val useCase = createUseCase(
             short = Result.failure(RuntimeException()),
             midLand = Result.failure(RuntimeException()),
@@ -157,7 +157,7 @@ class GetCombinedWeatherUseCaseTest {
         short: Result<ShortForecast> = Result.success(mockk()),
         midLand: Result<MidLandForecast> = Result.success(mockk()),
         midTa: Result<MidTaForecast> = Result.success(mockk()),
-        air: Result<AirQualityResponse> = Result.success(mockk())
+        air: Result<AirQuality> = Result.success(mockk())
     ): GetCombinedWeatherUseCase {
         val bjdPort = mockk<BjdPort>()
         val kmaWeatherPort = mockk<KmaWeatherPort>()

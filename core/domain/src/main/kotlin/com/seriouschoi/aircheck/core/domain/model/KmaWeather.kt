@@ -7,7 +7,7 @@ package com.seriouschoi.aircheck.core.domain.model
  * - midLandForecast: 중기육상예보 (3~10일 강수확률·날씨). 조회 실패 시 null.
  * - midTaForecast: 중기기온예보 (3~10일 최저·최고기온). 조회 실패 시 null.
  */
-data class KmaWeatherResponse(
+data class KmaWeather(
     val shortForecast: ShortForecast?,
     val midLandForecast: MidLandForecast?,
     val midTaForecast: MidTaForecast?

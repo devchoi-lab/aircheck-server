@@ -6,8 +6,8 @@ import com.seriouschoi.aircheck.core.domain.model.HourlyForecast
 import com.seriouschoi.aircheck.core.domain.model.PrecipitationType
 import com.seriouschoi.aircheck.core.domain.model.SkyCondition
 import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
-import com.seriouschoi.aircheck.core.kma.dto.FcstItem
-import com.seriouschoi.aircheck.core.kma.dto.NcstItem
+import com.seriouschoi.aircheck.core.kma.dto.FcstDto
+import com.seriouschoi.aircheck.core.kma.dto.NcstDto
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import java.time.LocalDate
@@ -105,7 +105,7 @@ internal fun LocalDateTime.toMidFcstTmFc(): String =
  * 항목이 없거나 숫자로 읽을 수 없으면 기본값(0 등)으로 채우지 않고 null로 둔다.
  * 초단기실황에는 하늘상태(SKY)가 없어 강수형태(PTY)만 기상청 값 그대로 담는다.
  */
-internal fun parseCurrentWeather(items: List<NcstItem>): CurrentWeather {
+internal fun parseCurrentWeather(items: List<NcstDto>): CurrentWeather {
     var temperature: Double? = null; var humidity: Int? = null; var precipitation: Double? = null
     var windSpeed: Double? = null; var windDirection: Int? = null; var pty: PrecipitationType? = null
     items.forEach { item ->
@@ -137,7 +137,7 @@ internal fun parseCurrentWeather(items: List<NcstItem>): CurrentWeather {
  * 항목이 없거나 숫자로 읽을 수 없으면 기본값으로 채우지 않고 null로 둔다.
  * 참고: 기상청 SNO는 범주 문자열(예: "적설없음")이라 숫자로 읽을 수 없으면 snowfall은 null이다.
  */
-internal fun parseExtendedHourlyForecast(items: List<FcstItem>): List<HourlyForecast> {
+internal fun parseExtendedHourlyForecast(items: List<FcstDto>): List<HourlyForecast> {
     if (items.isEmpty()) return emptyList()
     return items.groupBy { "${it.fcstDate}_${it.fcstTime}" }.map { (timeKey, timeItems) ->
         val (fcstDate, fcstTime) = timeKey.split("_")
@@ -175,7 +175,7 @@ internal fun parseExtendedHourlyForecast(items: List<FcstItem>): List<HourlyFore
  * 값이 없거나 숫자로 읽을 수 없으면 기본값(0, 맑음 등)으로 채우지 않고 null로 둔다.
  * 오전/오후는 예보 시각이 12시 이전/이후인지로 나눈다.
  */
-internal fun parseDailyForecast(items: List<FcstItem>): List<DailyForecast> {
+internal fun parseDailyForecast(items: List<FcstDto>): List<DailyForecast> {
     val dateFmt = DateTimeFormatter.ofPattern("yyyyMMdd")
     return items.groupBy { it.fcstDate }.map { (date, dateItems) ->
         var minTemp: Double? = null
