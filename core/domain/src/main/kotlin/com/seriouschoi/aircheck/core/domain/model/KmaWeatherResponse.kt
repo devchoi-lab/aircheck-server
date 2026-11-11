@@ -12,9 +12,3 @@ data class KmaWeatherResponse(
     val midLandForecast: MidLandForecast?,
     val midTaForecast: MidTaForecast?
 )
-
-data class ShortForecast(
-    val current: CurrentWeather,
-    val hourlyForecast: List<HourlyForecast>,
-    val dailyForecast: List<DailyForecast>
-)
