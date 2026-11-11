@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -33,6 +34,7 @@ class WeatherController(
     private val getWeatherForecastUseCase: GetWeatherForecastUseCase,
     private val getAirQualityUseCase: GetAirQualityUseCase
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @Operation(
         summary = "통합 날씨/대기질 조회",
@@ -127,7 +129,9 @@ class WeatherController(
             request.locations.take(10).map { location ->
                 async(Dispatchers.IO) {
                     // 위치 하나가 실패해도 나머지는 돌려준다 (실패한 위치는 값이 null)
-                    val result = getCombinedWeatherUseCase.execute(location.lat, location.lng).getOrNull()
+                    val result = getCombinedWeatherUseCase.execute(location.lat, location.lng)
+                        .onFailure { log.warn("배치 조회 실패 (lat=${location.lat}, lng=${location.lng}): ${it.message}") }
+                        .getOrNull()
                     BatchWeatherItem(
                         lat = location.lat,
                         lng = location.lng,
