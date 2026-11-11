@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.seriouschoi.aircheck.core.domain.model.AirQualityResponse
+import com.seriouschoi.aircheck.core.domain.model.AirQuality
 import com.seriouschoi.aircheck.core.domain.model.DailyForecast
 import com.seriouschoi.aircheck.core.domain.model.PrecipitationType
 import com.seriouschoi.aircheck.core.domain.model.SkyCondition
@@ -29,8 +29,8 @@ class ResponseJsonTest(@Autowired private val objectMapper: ObjectMapper) {
     class TestConfig
 
     @Test
-    fun `AirQualityResponse dataTime은 UTC ISO 8601 문자열이다`() {
-        val response = AirQualityResponse(
+    fun `AirQuality dataTime은 UTC ISO 8601 문자열이다`() {
+        val response = AirQuality(
             stationName = "중구",
             sidoName = "서울",
             dataTime = Instant.parse("2026-03-20T00:00:00Z"),

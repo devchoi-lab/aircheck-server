@@ -1,7 +1,7 @@
 package com.seriouschoi.aircheck.core.kma
 
 import com.seriouschoi.aircheck.core.domain.model.PrecipitationType
-import com.seriouschoi.aircheck.core.kma.dto.NcstItem
+import com.seriouschoi.aircheck.core.kma.dto.NcstDto
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
  */
 class ParseCurrentWeatherTest {
 
-    private fun item(category: String, value: String) = NcstItem(
+    private fun item(category: String, value: String) = NcstDto(
         baseDate = "20260320", baseTime = "1300",
         category = category, obsrValue = value, nx = 60, ny = 127
     )

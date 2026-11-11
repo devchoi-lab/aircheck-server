@@ -1,8 +1,8 @@
 package com.seriouschoi.aircheck.feature.weather
 
-import com.seriouschoi.aircheck.core.domain.model.AirQualityResponse
-import com.seriouschoi.aircheck.core.domain.model.CombinedWeatherResult
-import com.seriouschoi.aircheck.core.domain.model.KmaWeatherResponse
+import com.seriouschoi.aircheck.core.domain.model.AirQuality
+import com.seriouschoi.aircheck.core.domain.model.CombinedWeather
+import com.seriouschoi.aircheck.core.domain.model.KmaWeather
 import com.seriouschoi.aircheck.core.domain.usecase.GetAirQualityUseCase
 import com.seriouschoi.aircheck.core.domain.usecase.GetCombinedWeatherUseCase
 import com.seriouschoi.aircheck.core.domain.usecase.GetWeatherForecastUseCase
@@ -45,7 +45,7 @@ class WeatherController(
         ApiResponse(
             responseCode = "200",
             description = "조회 성공",
-            content = [Content(schema = Schema(implementation = CombinedWeatherResult::class))]
+            content = [Content(schema = Schema(implementation = CombinedWeather::class))]
         ),
         ApiResponse(
             responseCode = "404",
@@ -58,7 +58,7 @@ class WeatherController(
         @RequestParam lat: Double,
         @Parameter(description = "경도 (예: 126.9780)", example = "126.9780")
         @RequestParam lng: Double
-    ): ResponseEntity<CombinedWeatherResult> =
+    ): ResponseEntity<CombinedWeather> =
         ResponseEntity.ok(getCombinedWeatherUseCase.execute(lat, lng).getOrThrow())
 
     @Operation(
@@ -69,7 +69,7 @@ class WeatherController(
         ApiResponse(
             responseCode = "200",
             description = "조회 성공",
-            content = [Content(schema = Schema(implementation = KmaWeatherResponse::class))]
+            content = [Content(schema = Schema(implementation = KmaWeather::class))]
         ),
         ApiResponse(
             responseCode = "404",
@@ -82,7 +82,7 @@ class WeatherController(
         @RequestParam lat: Double,
         @Parameter(description = "경도", example = "126.9780")
         @RequestParam lng: Double
-    ): ResponseEntity<KmaWeatherResponse> =
+    ): ResponseEntity<KmaWeather> =
         ResponseEntity.ok(getWeatherForecastUseCase.execute(lat, lng).getOrThrow())
 
     @Operation(
@@ -94,7 +94,7 @@ class WeatherController(
         ApiResponse(
             responseCode = "200",
             description = "조회 성공",
-            content = [Content(schema = Schema(implementation = AirQualityResponse::class))]
+            content = [Content(schema = Schema(implementation = AirQuality::class))]
         ),
         ApiResponse(
             responseCode = "404",
@@ -107,7 +107,7 @@ class WeatherController(
         @RequestParam lat: Double,
         @Parameter(description = "경도", example = "126.9780")
         @RequestParam lng: Double
-    ): ResponseEntity<AirQualityResponse> =
+    ): ResponseEntity<AirQuality> =
         ResponseEntity.ok(getAirQualityUseCase.execute(lat, lng).getOrThrow())
 
     @Operation(
@@ -159,6 +159,6 @@ data class LocationRequest(
 data class BatchWeatherItem(
     val lat: Double,
     val lng: Double,
-    val kmaWeather: KmaWeatherResponse?,
-    val airQuality: AirQualityResponse?
+    val kmaWeather: KmaWeather?,
+    val airQuality: AirQuality?
 )

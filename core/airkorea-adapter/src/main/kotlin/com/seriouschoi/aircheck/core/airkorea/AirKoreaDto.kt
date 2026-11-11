@@ -6,13 +6,13 @@ import kotlinx.serialization.Serializable
 // ── 에어코리아 API 응답 모델 ───────────────────────────────────────────────
 
 @Serializable
-internal data class AirKoreaResponse(val response: AirKoreaBody? = null)
+internal data class AirKoreaDto(val response: AirKoreaBodyDto? = null)
 
 @Serializable
-internal data class AirKoreaBody(val body: AirKoreaItems? = null)
+internal data class AirKoreaBodyDto(val body: AirKoreaItemsDto? = null)
 
 @Serializable
-internal data class AirKoreaItems(val items: List<AirKoreaItem> = emptyList())
+internal data class AirKoreaItemsDto(val items: List<AirKoreaItemDto> = emptyList())
 
 /**
  * 에어코리아 실시간 대기질 측정 데이터 (ver=1.5 기준)
@@ -26,13 +26,13 @@ internal data class AirKoreaItems(val items: List<AirKoreaItem> = emptyList())
  * 현재 화면에 1시간 농도(pm10Value)와 24시간 등급(pm10Grade)을 함께 쓰고 있어 시간 기준이 다름 — 추후 검토 필요.
  *
  * Flag 필드: 값이 있으면 비정상 상태 (점검및교정/장비점검/자료이상/통신장애). null이면 정상.
- * AirQualityResponse에 MeasurementFlag enum으로 변환하여 전달.
+ * AirQuality에 MeasurementFlag enum으로 변환하여 전달.
  */
 @Serializable
-internal data class AirKoreaItem(
+internal data class AirKoreaItemDto(
     /** 측정소명 (예: "중구", "강남구"). ver≥1.4부터 응답에 포함 */
     val stationName: String = "",
-    /** 측정소 코드. ver≥1.4부터 응답에 포함. 현재 AirQualityResponse에 미전달 */
+    /** 측정소 코드. ver≥1.4부터 응답에 포함. 현재 AirQuality에 미전달 */
     val stationCode: String = "",
     /** 시도명 (예: "서울", "경기"). API 응답이 아닌 StationInfo에서 채워짐 */
     val sidoName: String = "",
@@ -52,7 +52,7 @@ internal data class AirKoreaItem(
     val pm10Value: String = "-",
     /**
      * PM10 24시간 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨).
-     * 주의: pm10Value(1시간 농도)와 시간 기준이 다름. AirQualityResponse에 미전달 (1시간 등급 pm10Grade1h 사용).
+     * 주의: pm10Value(1시간 농도)와 시간 기준이 다름. AirQuality에 미전달 (1시간 등급 pm10Grade1h 사용).
      * 파싱: toIntOrNull()
      */
     val pm10Grade: String = "-",
@@ -60,14 +60,14 @@ internal data class AirKoreaItem(
     val pm10Value24: String = "-",
     /**
      * PM10 1시간 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨). ver≥1.3.
-     * pm10Value(1시간 농도)와 시간 기준이 일치. → AirQualityResponse.pm10GradeAirKorea로 전달.
+     * pm10Value(1시간 농도)와 시간 기준이 일치. → AirQuality.pm10GradeAirKorea로 전달.
      * 파싱: toIntOrNull()
      */
     val pm10Grade1h: String = "-",
     /**
      * PM10 측정기기 상태 플래그. null이면 정상.
      * 가능한 값: 점검및교정 / 장비점검 / 자료이상 / 통신장애
-     * 값이 있으면 해당 시간대 측정값 신뢰 불가. → AirQualityResponse.pm10Flag(MeasurementFlag)로 전달.
+     * 값이 있으면 해당 시간대 측정값 신뢰 불가. → AirQuality.pm10Flag(MeasurementFlag)로 전달.
      */
     val pm10Flag: String? = null,
 
@@ -75,7 +75,7 @@ internal data class AirKoreaItem(
     val pm25Value: String = "-",
     /**
      * PM2.5 24시간 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨).
-     * 주의: pm25Value(1시간 농도)와 시간 기준이 다름. AirQualityResponse에 미전달 (1시간 등급 pm25Grade1h 사용).
+     * 주의: pm25Value(1시간 농도)와 시간 기준이 다름. AirQuality에 미전달 (1시간 등급 pm25Grade1h 사용).
      * 파싱: toIntOrNull()
      */
     val pm25Grade: String = "-",
@@ -83,14 +83,14 @@ internal data class AirKoreaItem(
     val pm25Value24: String = "-",
     /**
      * PM2.5 1시간 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨). ver≥1.3.
-     * pm25Value(1시간 농도)와 시간 기준이 일치. → AirQualityResponse.pm25GradeAirKorea로 전달.
+     * pm25Value(1시간 농도)와 시간 기준이 일치. → AirQuality.pm25GradeAirKorea로 전달.
      * 파싱: toIntOrNull()
      */
     val pm25Grade1h: String = "-",
     /**
      * PM2.5 측정기기 상태 플래그. null이면 정상.
      * 가능한 값: 점검및교정 / 장비점검 / 자료이상 / 통신장애
-     * 값이 있으면 해당 시간대 측정값 신뢰 불가. → AirQualityResponse.pm25Flag(MeasurementFlag)로 전달.
+     * 값이 있으면 해당 시간대 측정값 신뢰 불가. → AirQuality.pm25Flag(MeasurementFlag)로 전달.
      */
     val pm25Flag: String? = null,
 
@@ -111,41 +111,41 @@ internal data class AirKoreaItem(
     // ── 가스류 ────────────────────────────────────────────────────────────────
     /** 아황산가스 농도 (ppm, ver≥1.5부터 소수점 4자리). 파싱: toDoubleOrNull() */
     val so2Value: String = "-",
-    /** 아황산가스 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨). → AirQualityResponse.so2GradeAirKorea로 전달. 파싱: toIntOrNull() */
+    /** 아황산가스 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨). → AirQuality.so2GradeAirKorea로 전달. 파싱: toIntOrNull() */
     val so2Grade: String = "-",
     /**
      * 아황산가스 측정기기 상태 플래그. null이면 정상.
-     * 가능한 값: 점검및교정 / 장비점검 / 자료이상 / 통신장애. → AirQualityResponse.so2Flag(MeasurementFlag)로 전달.
+     * 가능한 값: 점검및교정 / 장비점검 / 자료이상 / 통신장애. → AirQuality.so2Flag(MeasurementFlag)로 전달.
      */
     val so2Flag: String? = null,
 
     /** 일산화탄소 농도 (ppm, ver≥1.5부터 소수점 2자리). 파싱: toDoubleOrNull() */
     val coValue: String = "-",
-    /** 일산화탄소 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨). → AirQualityResponse.coGradeAirKorea로 전달. 파싱: toIntOrNull() */
+    /** 일산화탄소 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨). → AirQuality.coGradeAirKorea로 전달. 파싱: toIntOrNull() */
     val coGrade: String = "-",
     /**
      * 일산화탄소 측정기기 상태 플래그. null이면 정상.
-     * 가능한 값: 점검및교정 / 장비점검 / 자료이상 / 통신장애. → AirQualityResponse.coFlag(MeasurementFlag)로 전달.
+     * 가능한 값: 점검및교정 / 장비점검 / 자료이상 / 통신장애. → AirQuality.coFlag(MeasurementFlag)로 전달.
      */
     val coFlag: String? = null,
 
     /** 오존 농도 (ppm, ver≥1.5부터 소수점 4자리). 파싱: toDoubleOrNull() */
     val o3Value: String = "-",
-    /** 오존 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨). → AirQualityResponse.o3GradeAirKorea로 전달. 파싱: toIntOrNull() */
+    /** 오존 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨). → AirQuality.o3GradeAirKorea로 전달. 파싱: toIntOrNull() */
     val o3Grade: String = "-",
     /**
      * 오존 측정기기 상태 플래그. null이면 정상.
-     * 가능한 값: 점검및교정 / 장비점검 / 자료이상 / 통신장애. → AirQualityResponse.o3Flag(MeasurementFlag)로 전달.
+     * 가능한 값: 점검및교정 / 장비점검 / 자료이상 / 통신장애. → AirQuality.o3Flag(MeasurementFlag)로 전달.
      */
     val o3Flag: String? = null,
 
     /** 이산화질소 농도 (ppm, ver≥1.5부터 소수점 4자리). 파싱: toDoubleOrNull() */
     val no2Value: String = "-",
-    /** 이산화질소 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨). → AirQualityResponse.no2GradeAirKorea로 전달. 파싱: toIntOrNull() */
+    /** 이산화질소 등급 (1:좋음 / 2:보통 / 3:나쁨 / 4:매우나쁨). → AirQuality.no2GradeAirKorea로 전달. 파싱: toIntOrNull() */
     val no2Grade: String = "-",
     /**
      * 이산화질소 측정기기 상태 플래그. null이면 정상.
-     * 가능한 값: 점검및교정 / 장비점검 / 자료이상 / 통신장애. → AirQualityResponse.no2Flag(MeasurementFlag)로 전달.
+     * 가능한 값: 점검및교정 / 장비점검 / 자료이상 / 통신장애. → AirQuality.no2Flag(MeasurementFlag)로 전달.
      */
     val no2Flag: String? = null
 )

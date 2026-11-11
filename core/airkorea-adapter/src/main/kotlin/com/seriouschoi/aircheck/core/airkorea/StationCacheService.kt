@@ -38,7 +38,7 @@ class StationCacheService(
                 returnType = "json",
                 ver = "1.1"
             )
-            val parsed = json.decodeFromString<StationResponse>(response)
+            val parsed = json.decodeFromString<StationDto>(response)
 
             val stations = parsed.response?.body?.items?.mapNotNull { station ->
                 val lng = station.dmX.toDoubleOrNull()
@@ -67,16 +67,16 @@ data class StationInfo(
 )
 
 @Serializable
-data class StationResponse(val response: StationBody? = null)
+data class StationDto(val response: StationBodyDto? = null)
 
 @Serializable
-data class StationBody(val body: StationItems? = null)
+data class StationBodyDto(val body: StationItemsDto? = null)
 
 @Serializable
-data class StationItems(val items: List<StationItem> = emptyList())
+data class StationItemsDto(val items: List<StationItemDto> = emptyList())
 
 @Serializable
-data class StationItem(
+data class StationItemDto(
     val stationName: String = "",
     val addr: String = "",
     val dmX: String = "",

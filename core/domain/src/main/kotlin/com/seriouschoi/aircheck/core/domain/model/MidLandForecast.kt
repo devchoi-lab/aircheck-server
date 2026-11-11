@@ -5,7 +5,7 @@ import java.time.LocalDate
 /**
  * 중기육상예보 (3~10일, getMidLandFcst API 응답)
  *
- * doCode → landRegId 매핑 후 조회. KmaWeatherResponse에 포함되어 반환.
+ * doCode → landRegId 매핑 후 조회. KmaWeather에 포함되어 반환.
  */
 data class MidLandForecast(
     val days: List<MidLandForecastDay>

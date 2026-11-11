@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
  * 중기예보 아이템 (육상)
  */
 @Serializable
-data class MidLandFcstItem(
+data class MidLandFcstDto(
     val regId: String,         // 예보구역코드
     val rnSt3Am: Int? = null,  // 3일 후 오전 강수확률
     val rnSt3Pm: Int? = null,  // 3일 후 오후 강수확률
@@ -40,7 +40,7 @@ data class MidLandFcstItem(
  * 중기기온예보 아이템
  */
 @Serializable
-data class MidTaItem(
+data class MidTaDto(
     val regId: String,         // 예보구역코드
     val taMin3: Int? = null,   // 3일 후 최저기온
     val taMax3: Int? = null,   // 3일 후 최고기온

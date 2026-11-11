@@ -5,8 +5,8 @@ import com.seriouschoi.aircheck.core.domain.model.MidLandForecastDay
 import com.seriouschoi.aircheck.core.domain.model.MidLandWeather
 import com.seriouschoi.aircheck.core.domain.model.MidLandWeatherType
 import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
-import com.seriouschoi.aircheck.core.kma.dto.KmaApiResponse
-import com.seriouschoi.aircheck.core.kma.dto.MidLandFcstItem
+import com.seriouschoi.aircheck.core.kma.dto.KmaApiDto
+import com.seriouschoi.aircheck.core.kma.dto.MidLandFcstDto
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -38,7 +38,7 @@ class KmaMidLandForecastCache(
                 regId = regId, tmFc = base.toMidFcstTmFc()
             )
             check(response.isNotEmpty()) { "KMA mid-land fcst: empty response" }
-            val parsed = forecastJson.decodeFromString<KmaApiResponse<MidLandFcstItem>>(response)
+            val parsed = forecastJson.decodeFromString<KmaApiDto<MidLandFcstDto>>(response)
             check(parsed.response.header.resultCode == "00") {
                 "KMA mid-land fcst error: ${parsed.response.header.resultMsg}"
             }
@@ -108,7 +108,7 @@ private fun String?.toMidLandWeather(): MidLandWeather? {
  * 값이 없으면 기본값(0, "")으로 채우지 않고 null로 둔다. 8~10일은 단일값을 오전/오후에 공통으로 쓴다.
  * 날씨는 기상청 문구 원문과 타입을 함께 담는다.
  */
-internal fun parseMidLandForecast(item: MidLandFcstItem, baseDate: LocalDate): MidLandForecast {
+internal fun parseMidLandForecast(item: MidLandFcstDto, baseDate: LocalDate): MidLandForecast {
     val days = (3..10).map { offset ->
         val date = baseDate.plusDays(offset.toLong())
         when (offset) {

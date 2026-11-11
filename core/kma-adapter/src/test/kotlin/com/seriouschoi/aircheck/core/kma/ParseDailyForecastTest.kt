@@ -2,7 +2,7 @@ package com.seriouschoi.aircheck.core.kma
 
 import com.seriouschoi.aircheck.core.domain.model.PrecipitationType
 import com.seriouschoi.aircheck.core.domain.model.SkyCondition
-import com.seriouschoi.aircheck.core.kma.dto.FcstItem
+import com.seriouschoi.aircheck.core.kma.dto.FcstDto
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
@@ -13,7 +13,7 @@ import java.time.LocalDate
  */
 class ParseDailyForecastTest {
 
-    private fun item(category: String, time: String, value: String, date: String = "20260320") = FcstItem(
+    private fun item(category: String, time: String, value: String, date: String = "20260320") = FcstDto(
         baseDate = "20260320", baseTime = "0200",
         category = category, fcstDate = date, fcstTime = time, fcstValue = value,
         nx = 60, ny = 127

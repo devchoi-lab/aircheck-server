@@ -6,32 +6,32 @@ import kotlinx.serialization.Serializable
  * 기상청 API 공통 응답 구조
  */
 @Serializable
-data class KmaApiResponse<T>(
-    val response: KmaResponse<T>
+data class KmaApiDto<T>(
+    val response: KmaPayloadDto<T>
 )
 
 @Serializable
-data class KmaResponse<T>(
-    val header: KmaHeader,
-    val body: KmaBody<T>? = null
+data class KmaPayloadDto<T>(
+    val header: KmaHeaderDto,
+    val body: KmaBodyDto<T>? = null
 )
 
 @Serializable
-data class KmaHeader(
+data class KmaHeaderDto(
     val resultCode: String,
     val resultMsg: String
 )
 
 @Serializable
-data class KmaBody<T>(
+data class KmaBodyDto<T>(
     val dataType: String? = null,
-    val items: KmaItems<T>? = null,
+    val items: KmaItemsDto<T>? = null,
     val pageNo: Int? = null,
     val numOfRows: Int? = null,
     val totalCount: Int? = null
 )
 
 @Serializable
-data class KmaItems<T>(
+data class KmaItemsDto<T>(
     val item: List<T>
 )
