@@ -3,7 +3,7 @@ package com.seriouschoi.aircheck.core.domain
 import com.seriouschoi.aircheck.core.domain.exception.LocationNotFoundException
 import com.seriouschoi.aircheck.core.domain.model.AirQuality
 import com.seriouschoi.aircheck.core.domain.model.BjdLocation
-import com.seriouschoi.aircheck.core.domain.model.CombinedWeatherResult
+import com.seriouschoi.aircheck.core.domain.model.CombinedWeather
 import com.seriouschoi.aircheck.core.domain.model.DataErrorTarget
 import com.seriouschoi.aircheck.core.domain.model.MidLandForecast
 import com.seriouschoi.aircheck.core.domain.model.MidTaForecast
@@ -176,7 +176,7 @@ class GetCombinedWeatherUseCaseTest {
         )
     }
 
-    private fun CombinedWeatherResult.errorTargets() = errors.map { it.target }
+    private fun CombinedWeather.errorTargets() = errors.map { it.target }
 
     private companion object {
         const val LAT = 37.5

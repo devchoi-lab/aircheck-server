@@ -1,7 +1,7 @@
 package com.seriouschoi.aircheck.core.domain.usecase
 
 import com.seriouschoi.aircheck.core.domain.exception.LocationNotFoundException
-import com.seriouschoi.aircheck.core.domain.model.CombinedWeatherResult
+import com.seriouschoi.aircheck.core.domain.model.CombinedWeather
 import com.seriouschoi.aircheck.core.domain.model.DataErrorTarget
 import com.seriouschoi.aircheck.core.domain.model.KmaWeather
 import com.seriouschoi.aircheck.core.domain.model.toDataError
@@ -23,10 +23,10 @@ class GetCombinedWeatherUseCase @Inject constructor(
 
     /**
      * 법정동을 찾지 못하면 어떤 API도 호출하지 않고 [LocationNotFoundException]으로 실패한다.
-     * 법정동을 찾은 뒤에는 항목별 실패를 [CombinedWeatherResult.errors]에 담고 나머지 항목은 그대로 돌려준다.
+     * 법정동을 찾은 뒤에는 항목별 실패를 [CombinedWeather.errors]에 담고 나머지 항목은 그대로 돌려준다.
      * 모든 항목이 실패해도 성공(빈 항목 + 에러 목록)으로 돌려준다.
      */
-    fun execute(lat: Double, lng: Double): Result<CombinedWeatherResult> {
+    fun execute(lat: Double, lng: Double): Result<CombinedWeather> {
         // 법정동을 찾지 못하면 외부 API를 호출하지 않는다 (원본 좌표로 호출하면 캐시 키가 좌표 단위로 흩어진다)
         val location = bjdPort.locate(lat, lng)
             ?: return Result.failure(LocationNotFoundException(lat, lng))
@@ -45,7 +45,7 @@ class GetCombinedWeatherUseCase @Inject constructor(
         )
 
         return Result.success(
-            CombinedWeatherResult(
+            CombinedWeather(
                 kmaWeather = KmaWeather(
                     shortForecast = short.getOrNull(),
                     midLandForecast = midLand.getOrNull(),

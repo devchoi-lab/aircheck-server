@@ -1,7 +1,7 @@
 package com.seriouschoi.aircheck.feature.weather
 
 import com.seriouschoi.aircheck.core.domain.model.AirQuality
-import com.seriouschoi.aircheck.core.domain.model.CombinedWeatherResult
+import com.seriouschoi.aircheck.core.domain.model.CombinedWeather
 import com.seriouschoi.aircheck.core.domain.model.KmaWeather
 import com.seriouschoi.aircheck.core.domain.usecase.GetAirQualityUseCase
 import com.seriouschoi.aircheck.core.domain.usecase.GetCombinedWeatherUseCase
@@ -45,7 +45,7 @@ class WeatherController(
         ApiResponse(
             responseCode = "200",
             description = "조회 성공",
-            content = [Content(schema = Schema(implementation = CombinedWeatherResult::class))]
+            content = [Content(schema = Schema(implementation = CombinedWeather::class))]
         ),
         ApiResponse(
             responseCode = "404",
@@ -58,7 +58,7 @@ class WeatherController(
         @RequestParam lat: Double,
         @Parameter(description = "경도 (예: 126.9780)", example = "126.9780")
         @RequestParam lng: Double
-    ): ResponseEntity<CombinedWeatherResult> =
+    ): ResponseEntity<CombinedWeather> =
         ResponseEntity.ok(getCombinedWeatherUseCase.execute(lat, lng).getOrThrow())
 
     @Operation(
