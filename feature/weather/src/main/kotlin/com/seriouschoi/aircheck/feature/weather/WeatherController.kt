@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -33,6 +34,7 @@ class WeatherController(
     private val getWeatherForecastUseCase: GetWeatherForecastUseCase,
     private val getAirQualityUseCase: GetAirQualityUseCase
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @Operation(
         summary = "통합 날씨/대기질 조회",
@@ -44,6 +46,10 @@ class WeatherController(
             responseCode = "200",
             description = "조회 성공",
             content = [Content(schema = Schema(implementation = CombinedWeatherResult::class))]
+        ),
+        ApiResponse(
+            responseCode = "404",
+            description = "해당 좌표의 법정동을 찾을 수 없음"
         )
     ])
     @GetMapping("/weather")
@@ -53,7 +59,7 @@ class WeatherController(
         @Parameter(description = "경도 (예: 126.9780)", example = "126.9780")
         @RequestParam lng: Double
     ): ResponseEntity<CombinedWeatherResult> =
-        ResponseEntity.ok(getCombinedWeatherUseCase.execute(lat, lng))
+        ResponseEntity.ok(getCombinedWeatherUseCase.execute(lat, lng).getOrThrow())
 
     @Operation(
         summary = "날씨 예보 조회",
@@ -122,12 +128,15 @@ class WeatherController(
         val results = runBlocking {
             request.locations.take(10).map { location ->
                 async(Dispatchers.IO) {
+                    // 위치 하나가 실패해도 나머지는 돌려준다 (실패한 위치는 값이 null)
                     val result = getCombinedWeatherUseCase.execute(location.lat, location.lng)
+                        .onFailure { log.warn("배치 조회 실패 (lat=${location.lat}, lng=${location.lng}): ${it.message}") }
+                        .getOrNull()
                     BatchWeatherItem(
                         lat = location.lat,
                         lng = location.lng,
-                        kmaWeather = result.kmaWeather,
-                        airQuality = result.airQuality
+                        kmaWeather = result?.kmaWeather,
+                        airQuality = result?.airQuality
                     )
                 }
             }.awaitAll()

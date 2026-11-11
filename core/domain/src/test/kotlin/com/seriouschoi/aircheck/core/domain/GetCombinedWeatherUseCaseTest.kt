@@ -1,10 +1,13 @@
 package com.seriouschoi.aircheck.core.domain
 
+import com.seriouschoi.aircheck.core.domain.exception.LocationNotFoundException
 import com.seriouschoi.aircheck.core.domain.model.AirQualityResponse
 import com.seriouschoi.aircheck.core.domain.model.BjdLocation
 import com.seriouschoi.aircheck.core.domain.model.CombinedWeatherResult
-import com.seriouschoi.aircheck.core.domain.model.DataErrorCode
-import com.seriouschoi.aircheck.core.domain.model.KmaWeatherResponse
+import com.seriouschoi.aircheck.core.domain.model.DataErrorTarget
+import com.seriouschoi.aircheck.core.domain.model.MidLandForecast
+import com.seriouschoi.aircheck.core.domain.model.MidTaForecast
+import com.seriouschoi.aircheck.core.domain.model.ShortForecast
 import com.seriouschoi.aircheck.core.domain.port.AirQualityPort
 import com.seriouschoi.aircheck.core.domain.port.BjdPort
 import com.seriouschoi.aircheck.core.domain.port.KmaWeatherPort
@@ -17,104 +20,128 @@ import org.junit.jupiter.api.Test
 class GetCombinedWeatherUseCaseTest {
 
     @Test
-    fun `장소를 가져오지 못했을경우, 결과에 위치 조회 실패 오류를 포함한다`() {
+    fun `장소를 가져오지 못했을경우, 위치 조회 실패를 리턴한다`() {
         val useCase = createUseCase(location = null)
 
         val result = useCase.execute(LAT, LNG)
 
-        assertTrue(result.errorCodes().contains(DataErrorCode.LOCATION_NOT_FOUND))
+        assertTrue(
+            result.exceptionOrNull() is LocationNotFoundException,
+            "법정동을 찾지 못하면 LocationNotFoundException으로 실패해야 하는데, ${result}를 리턴했습니다."
+        )
     }
 
     @Test
-    fun `장소를 가져오지 못했을경우, 대기질을 조회하지 않는다`() {
-        val airRequests = mutableListOf<Pair<Double, Double>>()
-        val useCase = createUseCase(location = null, airRequests = airRequests)
+    fun `장소를 가져오지 못했을경우, 날씨와 대기질을 조회하지 않는다`() {
+        val bjdPort = mockk<BjdPort>()
+        val kmaWeatherPort = mockk<KmaWeatherPort>()
+        val airQualityPort = mockk<AirQualityPort>()
+        every { bjdPort.locate(any(), any()) } returns null
+
+        // 외부 API 포트가 호출됐는지 확인하려고 호출된 이름을 기록한다.
+        val calls = mutableListOf<String>()
+        every { kmaWeatherPort.getShortForecast(any()) } answers { calls.add("단기예보"); Result.success(mockk()) }
+        every { kmaWeatherPort.getMidLandForecast(any()) } answers { calls.add("중기육상예보"); Result.success(mockk()) }
+        every { kmaWeatherPort.getMidTaForecast(any()) } answers { calls.add("중기기온예보"); Result.success(mockk()) }
+        every { airQualityPort.getAirQuality(any(), any()) } answers { calls.add("대기질"); Result.success(mockk()) }
+        val useCase = GetCombinedWeatherUseCase(bjdPort, kmaWeatherPort, airQualityPort)
 
         useCase.execute(LAT, LNG)
 
         assertTrue(
-            airRequests.isEmpty(),
-            "법정동을 찾지 못했는데 대기질을 ${airRequests}로 조회했습니다."
+            calls.isEmpty(),
+            "법정동을 찾지 못했는데 ${calls}를 조회했습니다."
         )
     }
 
     @Test
     fun `공기질 정보 불러오기를 실패해도, 날씨 정보에 영향을 주지 않는다`() {
-        val weather = completeWeather()
+        val short = mockk<ShortForecast>()
         val useCase = createUseCase(
-            weather = Result.success(weather),
+            short = Result.success(short),
+            air = Result.failure(RuntimeException())
+        )
+
+        val result = useCase.execute(LAT, LNG).getOrThrow()
+
+        assertEquals(listOf(DataErrorTarget.AIR_QUALITY), result.errorTargets())
+        assertSame(short, result.kmaWeather.shortForecast)
+        assertNull(result.airQuality)
+    }
+
+    @Test
+    fun `날씨 정보 불러오기를 모두 실패해도, 공기질 정보에 영향을 주지 않는다`() {
+        val airQuality = mockk<AirQualityResponse>()
+        val useCase = createUseCase(
+            short = Result.failure(RuntimeException()),
+            midLand = Result.failure(RuntimeException()),
+            midTa = Result.failure(RuntimeException()),
+            air = Result.success(airQuality)
+        )
+
+        val result = useCase.execute(LAT, LNG).getOrThrow()
+
+        assertEquals(
+            listOf(
+                DataErrorTarget.SHORT_FORECAST,
+                DataErrorTarget.MID_LAND_FORECAST,
+                DataErrorTarget.MID_TA_FORECAST
+            ),
+            result.errorTargets()
+        )
+        assertSame(airQuality, result.airQuality)
+    }
+
+    @Test
+    fun `단기예보 불러오기를 실패해도, 나머지 정보에 영향을 주지 않는다`() {
+        val result = createUseCase(short = Result.failure(RuntimeException()))
+            .execute(LAT, LNG).getOrThrow()
+
+        // 실패한 단기예보 하나만 오류로 담기고, 나머지 값은 그대로 내려온다.
+        assertEquals(listOf(DataErrorTarget.SHORT_FORECAST), result.errorTargets())
+        assertNull(result.kmaWeather.shortForecast)
+        assertNotNull(result.kmaWeather.midLandForecast)
+        assertNotNull(result.kmaWeather.midTaForecast)
+        assertNotNull(result.airQuality)
+    }
+
+    @Test
+    fun `중기육상예보 불러오기를 실패해도, 나머지 정보에 영향을 주지 않는다`() {
+        val result = createUseCase(midLand = Result.failure(RuntimeException()))
+            .execute(LAT, LNG).getOrThrow()
+
+        assertEquals(listOf(DataErrorTarget.MID_LAND_FORECAST), result.errorTargets())
+        assertNotNull(result.kmaWeather.shortForecast)
+        assertNull(result.kmaWeather.midLandForecast)
+        assertNotNull(result.kmaWeather.midTaForecast)
+        assertNotNull(result.airQuality)
+    }
+
+    @Test
+    fun `중기기온예보 불러오기를 실패해도, 나머지 정보에 영향을 주지 않는다`() {
+        val result = createUseCase(midTa = Result.failure(RuntimeException()))
+            .execute(LAT, LNG).getOrThrow()
+
+        assertEquals(listOf(DataErrorTarget.MID_TA_FORECAST), result.errorTargets())
+        assertNotNull(result.kmaWeather.shortForecast)
+        assertNotNull(result.kmaWeather.midLandForecast)
+        assertNull(result.kmaWeather.midTaForecast)
+        assertNotNull(result.airQuality)
+    }
+
+    @Test
+    fun `모든 항목이 실패해도, 실패가 아니라 항목별 오류를 담아 리턴한다`() {
+        val useCase = createUseCase(
+            short = Result.failure(RuntimeException()),
+            midLand = Result.failure(RuntimeException()),
+            midTa = Result.failure(RuntimeException()),
             air = Result.failure(RuntimeException())
         )
 
         val result = useCase.execute(LAT, LNG)
 
-        assertTrue(result.errorCodes().contains(DataErrorCode.API_UNAVAILABLE))
-        assertEquals(weather, result.kmaWeather)
-        assertNull(result.airQuality)
-    }
-
-    @Test
-    fun `날씨 정보 불러오기를 실패해도, 공기질 정보에 영향을 주지 않는다`() {
-        val airQuality = mockk<AirQualityResponse>()
-        val useCase = createUseCase(
-            weather = Result.failure(RuntimeException()),
-            air = Result.success(airQuality)
-        )
-
-        val result = useCase.execute(LAT, LNG)
-
-        assertTrue(result.errorCodes().contains(DataErrorCode.API_UNAVAILABLE))
-        assertNull(result.kmaWeather)
-        assertEquals(airQuality, result.airQuality)
-    }
-
-    @Test
-    fun `단기예보불러오기를 실패해도, 나머지 정보에 영향을 주지 않는다`() {
-        val weather = completeWeather().copy(shortForecast = null)
-        val airQuality = mockk<AirQualityResponse>()
-        val useCase = createUseCase(
-            weather = Result.success(weather),
-            air = Result.success(airQuality)
-        )
-
-        val result = useCase.execute(LAT, LNG)
-
-        // 실패한 단기예보 하나만 오류로 담기고, 나머지 값은 그대로 내려온다.
-        assertEquals(listOf(DataErrorCode.API_UNAVAILABLE), result.errorCodes())
-        assertEquals(weather, result.kmaWeather)
-        assertEquals(airQuality, result.airQuality)
-    }
-
-    @Test
-    fun `중기육상예보 불러오기를 실패해도, 나머지 정보에 영향을 주지 않는다`() {
-        val weather = completeWeather().copy(midLandForecast = null)
-        val airQuality = mockk<AirQualityResponse>()
-        val useCase = createUseCase(
-            weather = Result.success(weather),
-            air = Result.success(airQuality)
-        )
-
-        val result = useCase.execute(LAT, LNG)
-
-        assertEquals(listOf(DataErrorCode.API_UNAVAILABLE), result.errorCodes())
-        assertEquals(weather, result.kmaWeather)
-        assertEquals(airQuality, result.airQuality)
-    }
-
-    @Test
-    fun `중기기온예보 불러오기를 실패해도, 나머지 정보에 영향을 주지 않는다`() {
-        val weather = completeWeather().copy(midTaForecast = null)
-        val airQuality = mockk<AirQualityResponse>()
-        val useCase = createUseCase(
-            weather = Result.success(weather),
-            air = Result.success(airQuality)
-        )
-
-        val result = useCase.execute(LAT, LNG)
-
-        assertEquals(listOf(DataErrorCode.API_UNAVAILABLE), result.errorCodes())
-        assertEquals(weather, result.kmaWeather)
-        assertEquals(airQuality, result.airQuality)
+        assertTrue(result.isSuccess, "모든 항목이 실패해도 성공으로 리턴해야 하는데, ${result}를 리턴했습니다.")
+        assertEquals(4, result.getOrThrow().errors.size)
     }
 
     /**
@@ -127,21 +154,20 @@ class GetCombinedWeatherUseCaseTest {
             lat = LAT,
             lng = LNG
         ),
-        weather: Result<KmaWeatherResponse> = Result.success(completeWeather()),
-        air: Result<AirQualityResponse> = Result.success(mockk<AirQualityResponse>()),
-        // 대기질 포트가 호출된 좌표를 받아 가고 싶을 때 넘긴다.
-        airRequests: MutableList<Pair<Double, Double>>? = null
+        short: Result<ShortForecast> = Result.success(mockk()),
+        midLand: Result<MidLandForecast> = Result.success(mockk()),
+        midTa: Result<MidTaForecast> = Result.success(mockk()),
+        air: Result<AirQualityResponse> = Result.success(mockk())
     ): GetCombinedWeatherUseCase {
         val bjdPort = mockk<BjdPort>()
         val kmaWeatherPort = mockk<KmaWeatherPort>()
         val airQualityPort = mockk<AirQualityPort>()
 
         every { bjdPort.locate(any(), any()) } returns location
-        every { kmaWeatherPort.getWeather(any()) } returns weather
-        every { airQualityPort.getAirQuality(any(), any()) } answers {
-            airRequests?.add(firstArg<Double>() to secondArg<Double>())
-            air
-        }
+        every { kmaWeatherPort.getShortForecast(any()) } returns short
+        every { kmaWeatherPort.getMidLandForecast(any()) } returns midLand
+        every { kmaWeatherPort.getMidTaForecast(any()) } returns midTa
+        every { airQualityPort.getAirQuality(any(), any()) } returns air
 
         return GetCombinedWeatherUseCase(
             bjdPort = bjdPort,
@@ -150,14 +176,7 @@ class GetCombinedWeatherUseCaseTest {
         )
     }
 
-    /** 유스케이스는 내용을 열어 보지 않으므로 하위 예보는 mock으로 둔다. */
-    private fun completeWeather() = KmaWeatherResponse(
-        shortForecast = mockk(),
-        midLandForecast = mockk(),
-        midTaForecast = mockk()
-    )
-
-    private fun CombinedWeatherResult.errorCodes() = errors.map { it.errorCode }
+    private fun CombinedWeatherResult.errorTargets() = errors.map { it.target }
 
     private companion object {
         const val LAT = 37.5

@@ -17,11 +17,18 @@ class GetWeatherForecastUseCase @Inject constructor(
      * 법정동을 찾아 기상청 날씨를 조회한다.
      *
      * 법정동을 찾지 못하면 [LocationNotFoundException]으로 실패하고 기상청 API는 호출하지 않는다.
-     * 날씨 조회 실패는 포트가 돌려준 실패를 그대로 전달한다.
+     * 예보 종류별 조회가 일부 실패하면 그 항목만 null로 두고 나머지는 돌려준다.
      */
     fun execute(lat: Double, lng: Double): Result<KmaWeatherResponse> {
         val location = bjdPort.locate(lat, lng)
             ?: return Result.failure(LocationNotFoundException(lat, lng))
-        return kmaWeatherPort.getWeather(location)
+
+        return Result.success(
+            KmaWeatherResponse(
+                shortForecast = kmaWeatherPort.getShortForecast(location).getOrNull(),
+                midLandForecast = kmaWeatherPort.getMidLandForecast(location).getOrNull(),
+                midTaForecast = kmaWeatherPort.getMidTaForecast(location).getOrNull()
+            )
+        )
     }
 }

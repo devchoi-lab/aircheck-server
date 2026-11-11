@@ -68,8 +68,12 @@ class PushSubscriptionService(
 
         subscriptions.forEach { sub ->
             try {
-                val weather = getWeatherForecastUseCase.execute(sub.latitude, sub.longitude).getOrNull()
-                val air = getAirQualityUseCase.execute(sub.latitude, sub.longitude).getOrNull()
+                val weather = getWeatherForecastUseCase.execute(sub.latitude, sub.longitude)
+                    .onFailure { log.warn("Push weather lookup failed for ${sub.id}: ${it.message}") }
+                    .getOrNull()
+                val air = getAirQualityUseCase.execute(sub.latitude, sub.longitude)
+                    .onFailure { log.warn("Push air quality lookup failed for ${sub.id}: ${it.message}") }
+                    .getOrNull()
 
                 val current = weather?.shortForecast?.current
                 val temperature = current?.temperature
