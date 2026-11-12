@@ -29,7 +29,13 @@ object BjdMatcher {
     }
 
     /**
-     * 최근접 비교용 거리의 제곱 (단위: 도). 경도 1도는 위도 1도보다 짧아서 cos(위도)로 보정한다.
+     * 최근접 비교용 거리의 제곱 (단위: 도).
+     *
+     * 위도 1도는 어디서나 약 111km로 같지만, 경도 1도는 경도선이 극으로 모이기 때문에
+     * 위도가 높을수록 짧아진다 (111km × cos(위도), 서울은 약 88km).
+     * 도 단위 차이를 그대로 제곱해 더하면 경도 쪽이 실제보다 길게 계산되므로,
+     * 경도 차이에 cos(위도)를 곱해 위도와 같은 척도로 맞춘다 (등장방형 근사).
+     * 가까운 점끼리 비교하는 용도의 근사이며, 한도 판정은 [distanceKm]으로 정확히 계산한다.
      */
     private fun scaledSquaredDistance(point: Pair<Double, Double>, lat: Double, lng: Double, cosLat: Double): Double =
         (point.first - lat).pow(2) + ((point.second - lng) * cosLat).pow(2)
