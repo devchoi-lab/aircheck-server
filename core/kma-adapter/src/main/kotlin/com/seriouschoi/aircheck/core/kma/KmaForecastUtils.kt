@@ -62,17 +62,15 @@ internal fun <T> runWithUsage(apiType: String, apiUsagePort: ApiUsagePort?, bloc
 
 // ── 시간 계산 ─────────────────────────────────────────────────────────────────
 
-/** 초단기실황 base_date/base_time 계산 */
-internal fun calculateBaseDateTime(): Pair<String, String> {
-    val now = LocalDateTime.now(KST_ZONE)
+/** 초단기실황 base_date/base_time 계산 ([now]는 KST 기준 현재 시각, 테스트에서 시각을 고정하려고 인자로 받는다) */
+internal fun calculateBaseDateTime(now: LocalDateTime = LocalDateTime.now(KST_ZONE)): Pair<String, String> {
     val base = if (now.minute < 40) now.minusHours(1) else now
     return base.format(DateTimeFormatter.ofPattern("yyyyMMdd")) to
             base.format(DateTimeFormatter.ofPattern("HH00"))
 }
 
 /** 단기예보 base_date/base_time 계산 (발표시각: 02·05·08·11·14·17·20·23시) */
-internal fun calculateVilageFcstBaseDateTime(): Pair<String, String> {
-    val now = LocalDateTime.now(KST_ZONE)
+internal fun calculateVilageFcstBaseDateTime(now: LocalDateTime = LocalDateTime.now(KST_ZONE)): Pair<String, String> {
     val baseTimes = listOf(2, 5, 8, 11, 14, 17, 20, 23)
     val baseHour = baseTimes.lastOrNull { it <= now.hour - 1 } ?: 23
     val base = if (baseHour == 23 && now.hour < 23) now.minusDays(1).withHour(23) else now.withHour(baseHour)
@@ -84,8 +82,7 @@ internal fun calculateVilageFcstBaseDateTime(): Pair<String, String> {
  * 중기예보 발표시각 계산 (KST, 06시·18시).
  * 중기예보의 "N일 후"는 이 발표일(날짜) 기준이다.
  */
-internal fun calculateMidFcstBase(): LocalDateTime {
-    val now = LocalDateTime.now(KST_ZONE)
+internal fun calculateMidFcstBase(now: LocalDateTime = LocalDateTime.now(KST_ZONE)): LocalDateTime {
     return when {
         now.hour < 6  -> now.minusDays(1).withHour(18)
         now.hour < 18 -> now.withHour(6)
