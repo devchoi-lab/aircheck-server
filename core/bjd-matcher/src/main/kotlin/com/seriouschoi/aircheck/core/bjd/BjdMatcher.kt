@@ -1,6 +1,10 @@
 package com.seriouschoi.aircheck.core.bjd
 
+import kotlin.math.asin
+import kotlin.math.cos
 import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
  * 위경도 → 법정동(法定洞) 매칭
@@ -12,18 +16,47 @@ object BjdMatcher {
 
     /**
      * 위경도와 가장 가까운 법정동 반환.
-     * latLng가 있는 말단 단위(읍면동) 항목 중 유클리드 최근접 매칭.
+     * latLng가 있는 말단 단위(읍면동) 항목 중 최근접 매칭.
+     *
+     * 가장 가까운 법정동이 [maxDistanceKm]보다 멀면 null (한국 밖 좌표 등).
      */
-    fun match(lat: Double, lng: Double): BjdData? =
-        bjdList.filter { it.latLng != null }
-            .minByOrNull { dist(it.latLng!!.first, it.latLng.second, lat, lng) }
+    fun match(lat: Double, lng: Double, maxDistanceKm: Double): BjdData? {
+        // 후보마다 삼각함수를 쓰지 않도록 cos은 한 번만 계산하고, km 변환은 최근접 한 곳에만 한다.
+        val cosLat = cos(Math.toRadians(lat))
+        val nearest = points.minByOrNull { scaledSquaredDistance(it.latLng!!, lat, lng, cosLat) }
+            ?: return null
+        return nearest.takeIf { distanceKm(nearest.latLng!!, lat, lng) <= maxDistanceKm }
+    }
 
-    private fun dist(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double =
-        (lat1 - lat2).pow(2) + (lng1 - lng2).pow(2)
+    /**
+     * 최근접 비교용 거리의 제곱 (단위: 도).
+     *
+     * 위도 1도는 어디서나 약 111km로 같지만, 경도 1도는 경도선이 극으로 모이기 때문에
+     * 위도가 높을수록 짧아진다 (111km × cos(위도), 서울은 약 88km).
+     * 도 단위 차이를 그대로 제곱해 더하면 경도 쪽이 실제보다 길게 계산되므로,
+     * 경도 차이에 cos(위도)를 곱해 위도와 같은 척도로 맞춘다 (등장방형 근사).
+     * 가까운 점끼리 비교하는 용도의 근사이며, 한도 판정은 [distanceKm]으로 정확히 계산한다.
+     */
+    private fun scaledSquaredDistance(point: Pair<Double, Double>, lat: Double, lng: Double, cosLat: Double): Double =
+        (point.first - lat).pow(2) + ((point.second - lng) * cosLat).pow(2)
+
+    /** 두 위경도 사이의 거리 (km, 하버사인) */
+    private fun distanceKm(point: Pair<Double, Double>, lat: Double, lng: Double): Double {
+        val dLat = Math.toRadians(lat - point.first)
+        val dLng = Math.toRadians(lng - point.second)
+        val h = sin(dLat / 2).pow(2) +
+            cos(Math.toRadians(point.first)) * cos(Math.toRadians(lat)) * sin(dLng / 2).pow(2)
+        return 2 * EARTH_RADIUS_KM * asin(sqrt(h))
+    }
+
+    private const val EARTH_RADIUS_KM = 6371.0088
 
     private const val CSV = "/bjd-lat-lng.csv"
 
-    val bjdList: List<BjdData> by lazy { loadBjdList() }
+    private val bjdList: List<BjdData> by lazy { loadBjdList() }
+
+    /** 매칭 대상(latLng가 있는 항목). 호출마다 걸러내지 않도록 한 번만 만든다. */
+    private val points: List<BjdData> by lazy { bjdList.filter { it.latLng != null } }
 
     /** bjd-lat-lng.csv: code, doCode, doName, guCode, guName, dongCode, dongName, lat, lng */
     private fun loadBjdList(): List<BjdData> {

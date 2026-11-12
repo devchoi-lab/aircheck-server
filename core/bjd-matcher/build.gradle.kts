@@ -8,6 +8,10 @@ plugins {
 dependencies {
     implementation(project(":core:domain"))
     implementation("org.springframework.boot:spring-boot-autoconfigure")
+
+    // Test
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testImplementation("io.mockk:mockk:1.13.16")
 }
 
 /**
