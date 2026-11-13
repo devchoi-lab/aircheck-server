@@ -25,14 +25,26 @@ class KmaWeatherAdapter(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
+    /**
+     * 법정동 정보를 기반으로, 단기예보 정보를 가져온다.
+     * 단기 예보 조회를 실패하면, Result.failure리턴.
+     */
     override fun getShortForecast(location: BjdLocation): Result<ShortForecast> =
         runCatching { shortForecastCache.fetch(location.lat, location.lng) }
             .onFailure { log.error("단기예보 조회 실패 (lat=${location.lat}, lng=${location.lng})", it) }
 
+    /**
+     * 법정동 정보 기반으로, 중기 육상 예보 정보를 가져온다.
+     * api 조회 실패시, Result.failure리턴.
+     */
     override fun getMidLandForecast(location: BjdLocation): Result<MidLandForecast> =
         runCatching { midLandForecastCache.fetch(location.doCode, location.sigunguCode) }
             .onFailure { log.warn("중기육상예보 조회 실패 (doCode=${location.doCode}, sigunguCode=${location.sigunguCode})", it) }
 
+    /**
+     * 법정동 정보 기반으로, 중기 기온 예보 정보를 가져온다.
+     * api 조회 실패시, Result.failure리턴.
+     */
     override fun getMidTaForecast(location: BjdLocation): Result<MidTaForecast> =
         runCatching { midTaForecastCache.fetch(location.lat, location.lng) }
             .onFailure { log.warn("중기기온예보 조회 실패 (lat=${location.lat}, lng=${location.lng})", it) }
