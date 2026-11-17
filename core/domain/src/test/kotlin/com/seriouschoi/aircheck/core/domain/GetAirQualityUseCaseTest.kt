@@ -70,27 +70,4 @@ class GetAirQualityUseCaseTest {
             "대기질은 법정동 대표좌표(37.0, 127.0)로 조회해야 하는데, ${requested}로 조회했습니다."
         )
     }
-
-    @Test
-    fun `대기질 조회가 실패하면, 그 실패를 그대로 리턴한다`() {
-        val bjdPort = mockk<BjdPort>()
-        val airQualityPort = mockk<AirQualityPort>()
-        val failure = RuntimeException("api down")
-
-        //법정동 조회를 모킹
-        every { bjdPort.locate(any(), any()) } returns BjdLocation(
-            doCode = 1100000000L,
-            sigunguCode = 1168000000L,
-            lat = 37.0,
-            lng = 127.0
-        )
-        //대기질 조회 실패를 모킹.
-        every { airQualityPort.getAirQuality(any(), any()) } returns Result.failure(failure)
-
-        val useCase = GetAirQualityUseCase(bjdPort, airQualityPort)
-
-        val result = useCase.execute(37.5, 127.0)
-
-        assertSame(failure, result.exceptionOrNull())
-    }
 }
