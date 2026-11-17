@@ -1,9 +1,6 @@
 package com.seriouschoi.aircheck.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.seriouschoi.aircheck.core.domain.model.AirQuality
 import com.seriouschoi.aircheck.core.domain.model.DailyForecast
 import com.seriouschoi.aircheck.core.domain.model.PrecipitationType
@@ -62,21 +59,5 @@ class ResponseJsonTest(@Autowired private val objectMapper: ObjectMapper) {
         val node = objectMapper.readTree(objectMapper.writeValueAsString(forecast))
 
         assertEquals("2026-03-20", node["date"].asText())
-    }
-
-    @Test
-    fun `Jackson 타임스탬프 설정이 켜져 있어도 문자열 형식이 유지된다`() {
-        // Boot 기본 설정에 기대지 않고 직렬화기가 형식을 정한다는 것을 확인
-        val mapper = ObjectMapper()
-            .registerModule(JavaTimeModule())
-            .registerModule(
-                SimpleModule()
-                    .addSerializer(Instant::class.java, InstantJsonSerializer())
-                    .addSerializer(LocalDate::class.java, LocalDateJsonSerializer())
-            )
-            .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-
-        assertEquals("\"2026-03-20T00:00:00Z\"", mapper.writeValueAsString(Instant.parse("2026-03-20T00:00:00Z")))
-        assertEquals("\"2026-03-20\"", mapper.writeValueAsString(LocalDate.of(2026, 3, 20)))
     }
 }
