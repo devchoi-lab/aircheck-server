@@ -44,6 +44,12 @@ class AirKoreaAdapter(
             .map { it.key to it.value }
     }
 
+    /**
+     * lat, lng를 기반으로, 공기질 정보를 가져온다.
+     *
+     * lat, lng기반으로 가까운 측정소 정보를 가져와서,
+     * 해당 측정소의 공기질 측정 값을 리턴한다.
+     */
     override fun getAirQuality(lat: Double, lng: Double): Result<AirQuality> =
         Result.runCatching { fetchAirQuality(lat, lng) }
             .onFailure {
