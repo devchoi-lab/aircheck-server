@@ -102,7 +102,10 @@ internal fun LocalDateTime.toMidFcstTmFc(): String =
  * 항목이 없거나 숫자로 읽을 수 없으면 기본값(0 등)으로 채우지 않고 null로 둔다.
  * 초단기실황에는 하늘상태(SKY)가 없어 강수형태(PTY)만 기상청 값 그대로 담는다.
  */
-internal fun parseCurrentWeather(items: List<NcstDto>): CurrentWeather {
+internal fun parseCurrentWeather(
+    items: List<NcstDto>,
+    kstNow: LocalDateTime = LocalDateTime.now(KST_ZONE)
+): CurrentWeather {
     var temperature: Double? = null; var humidity: Int? = null; var precipitation: Double? = null
     var windSpeed: Double? = null; var windDirection: Int? = null; var pty: PrecipitationType? = null
     items.forEach { item ->
@@ -115,10 +118,10 @@ internal fun parseCurrentWeather(items: List<NcstDto>): CurrentWeather {
             "PTY" -> item.obsrValue.toPrecipitationTypeOrNull()?.let { pty = it }
         }
     }
-    val isDay = LocalDateTime.now(KST_ZONE).hour in 6..18
+    val isDay = kstNow.hour in 6..18
     return CurrentWeather(
         temperature = temperature,
-        feelsLike = calculateFeelsLike(temperature, windSpeed, humidity),
+        feelsLike = calculateFeelsLike(kstNow.monthValue, temperature, windSpeed, humidity),
         precipitation = precipitation,
         humidity = humidity,
         windSpeed = windSpeed,
@@ -157,7 +160,7 @@ internal fun parseExtendedHourlyForecast(items: List<FcstDto>): List<HourlyForec
         HourlyForecast(
             time = kstDateTime.atZone(KST_ZONE).toInstant(),
             temperature = temperature,
-            feelsLike = calculateFeelsLike(temperature, windSpeed, humidity),
+            feelsLike = calculateFeelsLike(kstDateTime.monthValue, temperature, windSpeed, humidity),
             precipitationProbability = pop,
             snowfall = sno,
             sky = sky,
@@ -213,30 +216,4 @@ internal fun parseDailyForecast(items: List<FcstDto>): List<DailyForecast> {
             amPrecipitationType = amPty, pmPrecipitationType = pmPty
         )
     }.sortedBy { it.date }.take(3)
-}
-
-// ── 공통 유틸 ─────────────────────────────────────────────────────────────────
-
-/**
- * 체감온도. 기온이 없으면 null.
- * - 기온 ≤10℃: 풍속이 있어야 판단할 수 있다 (≥1.3m/s이면 Wind Chill, 아니면 기온). 풍속이 없으면 null
- * - 기온 ≥27℃: 습도가 있어야 Heat Index를 계산할 수 있다. 습도가 없으면 null
- * - 그 외: 기온
- */
-internal fun calculateFeelsLike(temp: Double?, windSpeed: Double?, humidity: Int?): Double? {
-    if (temp == null) return null
-    return when {
-        temp <= 10 -> when {
-            windSpeed == null -> null
-            windSpeed >= 1.3 -> {
-                val ws016 = Math.pow(windSpeed, 0.16)
-                13.12 + 0.6215 * temp - 11.37 * ws016 + 0.3965 * temp * ws016
-            }
-            else -> temp
-        }
-        temp >= 27 ->
-            if (humidity == null) null
-            else temp + 0.33 * (humidity / 100.0 * 6.105 * Math.exp(17.27 * temp / (237.7 + temp))) - 4.0
-        else -> temp
-    }
 }

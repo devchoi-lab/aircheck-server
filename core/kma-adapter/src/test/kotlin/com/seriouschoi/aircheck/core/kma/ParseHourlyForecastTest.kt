@@ -12,9 +12,9 @@ import org.junit.jupiter.api.Test
  */
 class ParseHourlyForecastTest {
 
-    private fun item(category: String, value: String, time: String = "0900") = FcstDto(
+    private fun item(category: String, value: String, time: String = "0900", date: String = "20260320") = FcstDto(
         baseDate = "20260320", baseTime = "0500",
-        category = category, fcstDate = "20260320", fcstTime = time, fcstValue = value,
+        category = category, fcstDate = date, fcstTime = time, fcstValue = value,
         nx = 60, ny = 127
     )
 
@@ -32,7 +32,21 @@ class ParseHourlyForecastTest {
         assertEquals(0.5, result.snowfall)
         assertEquals(SkyCondition.OVERCAST, result.sky)
         assertEquals(PrecipitationType.NONE, result.precipitationType)
-        assertEquals(15.0, result.feelsLike)
+    }
+
+    @Test
+    fun `체감온도는 예보 시각의 월 기준으로 계산한다`() {
+        // 같은 기온(0도), 풍속(5m/s), 습도(70%)라도 1월은 겨울 식, 7월은 여름 식으로 계산한다.
+        // 현재 시각이 아니라 예보 시각의 월을 쓰는지 확인하려고 과거 날짜를 쓴다.
+        val winter = parseExtendedHourlyForecast(
+            listOf(item("TMP", "0.0", date = "20260120"), item("WSD", "5.0", date = "20260120"), item("REH", "70", date = "20260120"))
+        ).single()
+        val summer = parseExtendedHourlyForecast(
+            listOf(item("TMP", "32.0", date = "20260720"), item("WSD", "5.0", date = "20260720"), item("REH", "70", date = "20260720"))
+        ).single()
+
+        assertEquals(-4.94, winter.feelsLike!!, 0.01)
+        assertEquals(33.32, summer.feelsLike!!, 0.01)
     }
 
     @Test
