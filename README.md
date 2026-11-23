@@ -65,6 +65,8 @@
 |------|------|
 | `:app` | Spring Boot 진입점, 설정 |
 | `:feature:weather` | 날씨/대기질 REST API |
+| `:feature:push` | 푸시 구독 REST API |
+| `:feature:app-version` | 앱 버전 확인 REST API |
 | `:feature:admin` | 관리자 API (사용량, 버전) |
 | `:core:service` | 비즈니스 로직 |
 | `:core:domain` | Port 인터페이스, 도메인 모델 |

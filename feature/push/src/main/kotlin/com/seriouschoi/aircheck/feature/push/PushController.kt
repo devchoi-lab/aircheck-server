@@ -1,4 +1,4 @@
-package com.seriouschoi.aircheck.adapter.`in`.web
+package com.seriouschoi.aircheck.feature.push
 
 import com.seriouschoi.aircheck.core.domain.port.PushSubscriptionUseCase
 import jakarta.validation.Valid
