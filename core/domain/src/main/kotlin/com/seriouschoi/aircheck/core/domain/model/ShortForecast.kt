@@ -13,7 +13,14 @@ import java.time.LocalDate
 data class CurrentWeather(
     @Schema(description = "기온 (℃). 값이 없으면 null", example = "20.7", nullable = true)
     val temperature: Double?,
-    @Schema(description = "체감온도 (℃). 서버 계산값(기상청 산출식) — 여름철(5~9월): 기온+습도, 겨울철(10~4월): 기온 ≤10℃ 그리고 풍속 ≥1.3m/s일 때만 산출. 산출 조건 밖이거나 계산에 필요한 값이 없으면 null", example = "18.5", nullable = true)
+    @Schema(
+        description = "체감온도 (℃). 서버 계산값(기상청 산출식).\n" +
+            "- 여름철(5~9월): 기온과 습도로 계산\n" +
+            "- 겨울철(10~4월): 기온 ≤10℃ 그리고 풍속 ≥1.3m/s일 때만 산출\n\n" +
+            "산출 조건 밖이거나 계산에 필요한 값이 없으면 null",
+        example = "18.5",
+        nullable = true
+    )
     val feelsLike: Double?,
     @Schema(description = "1시간 강수량 (mm). 값이 없으면 null", example = "0.0", nullable = true)
     val precipitation: Double?,
@@ -33,7 +40,13 @@ data class HourlyForecast(
     val time: Instant,
     @Schema(description = "기온 (℃). 값이 없으면 null", nullable = true)
     val temperature: Double?,
-    @Schema(description = "체감온도 (℃). 서버 계산값(기상청 산출식). 겨울철(10~4월)에 기온 ≤10℃ 그리고 풍속 ≥1.3m/s가 아니면 산출하지 않아 null. 계산에 필요한 값이 없어도 null", nullable = true)
+    @Schema(
+        description = "체감온도 (℃). 서버 계산값(기상청 산출식).\n" +
+            "- 여름철(5~9월): 기온과 습도로 계산\n" +
+            "- 겨울철(10~4월): 기온 ≤10℃ 그리고 풍속 ≥1.3m/s일 때만 산출\n\n" +
+            "산출 조건 밖이거나 계산에 필요한 값이 없으면 null",
+        nullable = true
+    )
     val feelsLike: Double?,
     @Schema(description = "강수확률 (%). 값이 없으면 null", nullable = true)
     val precipitationProbability: Int?,
