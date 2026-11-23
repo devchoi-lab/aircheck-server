@@ -1,5 +1,7 @@
-package com.seriouschoi.aircheck.core.kma
+package com.seriouschoi.aircheck.core.kma.config
 
+import com.seriouschoi.aircheck.core.kma.api.KmaMidApi
+import com.seriouschoi.aircheck.core.kma.api.KmaApi
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean

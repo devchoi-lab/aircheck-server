@@ -5,7 +5,7 @@ import com.seriouschoi.aircheck.core.domain.model.DailyForecast
 import com.seriouschoi.aircheck.core.domain.model.HourlyForecast
 import com.seriouschoi.aircheck.core.domain.model.PrecipitationType
 import com.seriouschoi.aircheck.core.domain.model.SkyCondition
-import com.seriouschoi.aircheck.core.kma.KST_ZONE
+import com.seriouschoi.aircheck.core.kma.common.KST_ZONE
 import com.seriouschoi.aircheck.core.kma.calc.calculateFeelsLike
 import com.seriouschoi.aircheck.core.kma.dto.FcstDto
 import com.seriouschoi.aircheck.core.kma.dto.NcstDto

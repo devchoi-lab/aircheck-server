@@ -1,5 +1,8 @@
-package com.seriouschoi.aircheck.core.kma
+package com.seriouschoi.aircheck.core.kma.cache
 
+import com.seriouschoi.aircheck.core.kma.common.forecastJson
+import com.seriouschoi.aircheck.core.kma.common.runWithUsage
+import com.seriouschoi.aircheck.core.kma.api.KmaApi
 import com.seriouschoi.aircheck.core.kma.parser.parseCurrentWeather
 import com.seriouschoi.aircheck.core.kma.parser.parseDailyForecast
 import com.seriouschoi.aircheck.core.kma.parser.parseExtendedHourlyForecast

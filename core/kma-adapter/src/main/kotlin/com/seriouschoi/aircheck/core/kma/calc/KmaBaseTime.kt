@@ -1,6 +1,6 @@
 package com.seriouschoi.aircheck.core.kma.calc
 
-import com.seriouschoi.aircheck.core.kma.KST_ZONE
+import com.seriouschoi.aircheck.core.kma.common.KST_ZONE
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 

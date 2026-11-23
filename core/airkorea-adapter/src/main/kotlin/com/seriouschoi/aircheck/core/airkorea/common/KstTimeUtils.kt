@@ -1,4 +1,4 @@
-package com.seriouschoi.aircheck.core.airkorea
+package com.seriouschoi.aircheck.core.airkorea.common
 
 import java.time.Instant
 import java.time.LocalDateTime

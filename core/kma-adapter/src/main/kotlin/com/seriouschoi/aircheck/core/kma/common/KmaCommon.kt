@@ -1,4 +1,4 @@
-package com.seriouschoi.aircheck.core.kma
+package com.seriouschoi.aircheck.core.kma.common
 
 import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
 import kotlinx.serialization.json.Json

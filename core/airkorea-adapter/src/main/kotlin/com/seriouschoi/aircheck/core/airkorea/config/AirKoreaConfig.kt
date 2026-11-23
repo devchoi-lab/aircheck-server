@@ -1,5 +1,7 @@
-package com.seriouschoi.aircheck.core.airkorea
+package com.seriouschoi.aircheck.core.airkorea.config
 
+import com.seriouschoi.aircheck.core.airkorea.api.StationApi
+import com.seriouschoi.aircheck.core.airkorea.api.AirKoreaApi
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

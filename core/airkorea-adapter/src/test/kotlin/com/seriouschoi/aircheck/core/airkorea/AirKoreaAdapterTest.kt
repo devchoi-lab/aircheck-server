@@ -1,5 +1,8 @@
 package com.seriouschoi.aircheck.core.airkorea
 
+import com.seriouschoi.aircheck.core.airkorea.api.AirKoreaApi
+import com.seriouschoi.aircheck.core.airkorea.cache.StationCacheService
+import com.seriouschoi.aircheck.core.airkorea.cache.StationInfo
 import com.seriouschoi.aircheck.core.domain.exception.AirQualityNotFoundException
 import com.seriouschoi.aircheck.core.domain.model.AirQuality
 import io.mockk.every
