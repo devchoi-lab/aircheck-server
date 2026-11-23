@@ -1,4 +1,4 @@
-package com.seriouschoi.aircheck.core.kma
+package com.seriouschoi.aircheck.core.kma.calc
 
 import kotlin.math.PI
 import kotlin.math.abs

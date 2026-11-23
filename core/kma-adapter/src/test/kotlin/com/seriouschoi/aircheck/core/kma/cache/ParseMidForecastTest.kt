@@ -1,4 +1,4 @@
-package com.seriouschoi.aircheck.core.kma
+package com.seriouschoi.aircheck.core.kma.cache
 
 import com.seriouschoi.aircheck.core.domain.model.MidLandWeather
 import com.seriouschoi.aircheck.core.domain.model.MidLandWeatherType

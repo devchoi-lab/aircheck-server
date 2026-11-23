@@ -1,5 +1,6 @@
-package com.seriouschoi.aircheck.core.airkorea
+package com.seriouschoi.aircheck.core.airkorea.cache
 
+import com.seriouschoi.aircheck.core.airkorea.api.StationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory

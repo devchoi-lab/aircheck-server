@@ -1,4 +1,4 @@
-package com.seriouschoi.aircheck.core.kma
+package com.seriouschoi.aircheck.core.kma.parser
 
 import com.seriouschoi.aircheck.core.domain.model.PrecipitationType
 import com.seriouschoi.aircheck.core.domain.model.SkyCondition

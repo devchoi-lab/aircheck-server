@@ -1,5 +1,8 @@
 package com.seriouschoi.aircheck.core.kma
 
+import com.seriouschoi.aircheck.core.kma.cache.KmaMidTaForecastCache
+import com.seriouschoi.aircheck.core.kma.cache.KmaMidLandForecastCache
+import com.seriouschoi.aircheck.core.kma.cache.KmaShortForecastCache
 import com.seriouschoi.aircheck.core.domain.model.BjdLocation
 import com.seriouschoi.aircheck.core.domain.model.MidLandForecast
 import com.seriouschoi.aircheck.core.domain.model.MidTaForecast

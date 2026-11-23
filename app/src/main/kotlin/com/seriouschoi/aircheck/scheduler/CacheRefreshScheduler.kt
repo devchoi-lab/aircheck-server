@@ -1,6 +1,6 @@
 package com.seriouschoi.aircheck.scheduler
 
-import com.seriouschoi.aircheck.core.airkorea.StationCacheService
+import com.seriouschoi.aircheck.core.airkorea.cache.StationCacheService
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.cache.CacheManager

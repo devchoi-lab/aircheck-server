@@ -1,5 +1,6 @@
 package com.seriouschoi.aircheck.core.kma.dto
 
+import com.seriouschoi.aircheck.core.kma.calc.KmaGridConverter
 import kotlinx.serialization.Serializable
 
 /**

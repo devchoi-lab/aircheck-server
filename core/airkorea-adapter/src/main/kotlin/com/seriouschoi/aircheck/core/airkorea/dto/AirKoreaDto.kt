@@ -1,4 +1,4 @@
-package com.seriouschoi.aircheck.core.airkorea
+package com.seriouschoi.aircheck.core.airkorea.dto
 
 import com.seriouschoi.aircheck.core.domain.model.MeasurementFlag
 import kotlinx.serialization.Serializable

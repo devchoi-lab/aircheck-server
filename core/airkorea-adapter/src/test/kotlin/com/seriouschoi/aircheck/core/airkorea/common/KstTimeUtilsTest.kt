@@ -1,4 +1,4 @@
-package com.seriouschoi.aircheck.core.airkorea
+package com.seriouschoi.aircheck.core.airkorea.common
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
