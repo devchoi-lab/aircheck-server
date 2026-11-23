@@ -12,6 +12,8 @@ include(":core:firebase-adapter")
 
 // Feature modules
 include(":feature:weather")
+include(":feature:push")
+include(":feature:app-version")
 include(":feature:admin")
 
 // Util modules (헥사고날 계층과 무관한 기술적 유틸리티)

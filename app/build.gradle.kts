@@ -29,6 +29,8 @@ dependencies {
     
     // Feature modules
     implementation(project(":feature:weather"))
+    implementation(project(":feature:push"))
+    implementation(project(":feature:app-version"))
     implementation(project(":feature:admin"))
     
     // Spring Boot

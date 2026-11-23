@@ -1,4 +1,4 @@
-package com.seriouschoi.aircheck.feature.weather
+package com.seriouschoi.aircheck.feature.appversion
 
 import com.seriouschoi.aircheck.core.domain.port.ServiceVersionUseCase
 import org.springframework.http.ResponseEntity
