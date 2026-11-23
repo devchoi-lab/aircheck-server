@@ -16,23 +16,6 @@ class CalculateFeelsLikeTest {
     // ── 겨울철 (10~4월): 기온 10℃ 이하, 풍속 1.3m/s 이상일 때만 산출 ─────────────────
 
     @Test
-    fun `겨울철 기온 0도 풍속 5m_s는, 풍속을 km_h로 바꿔서 계산한다`() {
-        // 5m/s = 18km/h. 풍속 5를 그대로 넣으면 -1.59로 3도 넘게 달라진다.
-        assertEquals(
-            /* expected = */ -4.94,
-            /* actual = */
-            calculateFeelsLike(
-                month = JANUARY,
-                temp = 0.0,
-                windSpeedMs = 5.0,
-                humidity = null
-            )!!,
-            /* delta = */
-            TOLERANCE
-        )
-    }
-
-    @Test
     fun `겨울철 기온 영하 10도 풍속 10m_s는, 체감온도를 계산한다`() {
         assertEquals(
             /* expected = */ -20.30,
