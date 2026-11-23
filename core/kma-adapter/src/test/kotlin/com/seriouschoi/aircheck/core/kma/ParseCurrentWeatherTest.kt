@@ -5,6 +5,7 @@ import com.seriouschoi.aircheck.core.kma.dto.NcstDto
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 
 /**
  * parseCurrentWeather 테스트. 값이 없을 때 0으로 채우지 않고 null이어야 한다. 강수형태(PTY)는 기상청 값 그대로 담는다.
@@ -28,9 +29,21 @@ class ParseCurrentWeatherTest {
         assertEquals(20.7, result.temperature)
         assertEquals(49, result.humidity)
         assertEquals(0.0, result.precipitation)
-        assertEquals(1.8, result.windSpeed)
+        assertEquals(1.8, result.windSpeedMs)
         assertEquals(158, result.windDirection)
         assertEquals(PrecipitationType.NONE, result.precipitationType)
+    }
+
+    @Test
+    fun `체감온도는 현재 시각의 월 기준으로 계산한다`() {
+        val items = listOf(item("T1H", "32.0"), item("REH", "70"), item("WSD", "5.0"))
+
+        val july = parseCurrentWeather(items, kstNow = LocalDateTime.of(2026, 7, 20, 14, 0))
+        val january = parseCurrentWeather(items, kstNow = LocalDateTime.of(2026, 1, 20, 14, 0))
+
+        assertEquals(33.32, july.feelsLike!!, 0.01)
+        // 겨울철에 기온이 10도를 넘으면 산출하지 않는다.
+        assertNull(january.feelsLike)
     }
 
     @Test
@@ -41,7 +54,7 @@ class ParseCurrentWeatherTest {
         assertNull(result.feelsLike)
         assertNull(result.precipitation)
         assertNull(result.humidity)
-        assertNull(result.windSpeed)
+        assertNull(result.windSpeedMs)
         assertNull(result.windDirection)
         assertNull(result.precipitationType)
     }

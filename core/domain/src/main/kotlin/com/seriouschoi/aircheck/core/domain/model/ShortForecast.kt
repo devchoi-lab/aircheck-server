@@ -13,14 +13,21 @@ import java.time.LocalDate
 data class CurrentWeather(
     @Schema(description = "기온 (℃). 값이 없으면 null", example = "20.7", nullable = true)
     val temperature: Double?,
-    @Schema(description = "체감온도 (℃). 서버 계산값 — 기온 ≤10℃+풍속 ≥1.3m/s: Wind Chill, 기온 ≥27℃: Heat Index. 계산에 필요한 값이 없으면 null", example = "18.5", nullable = true)
+    @Schema(
+        description = "체감온도 (℃). 서버 계산값(기상청 산출식).\n" +
+            "- 여름철(5~9월): 기온과 습도로 계산\n" +
+            "- 겨울철(10~4월): 기온 ≤10℃ 그리고 풍속 ≥1.3m/s일 때만 산출\n\n" +
+            "산출 조건 밖이거나 계산에 필요한 값이 없으면 null",
+        example = "18.5",
+        nullable = true
+    )
     val feelsLike: Double?,
     @Schema(description = "1시간 강수량 (mm). 값이 없으면 null", example = "0.0", nullable = true)
     val precipitation: Double?,
     @Schema(description = "습도 (%). 값이 없으면 null", example = "49", nullable = true)
     val humidity: Int?,
     @Schema(description = "풍속 (m/s). 값이 없으면 null", example = "1.8", nullable = true)
-    val windSpeed: Double?,
+    val windSpeedMs: Double?,
     @Schema(description = "풍향 (deg, 0~360). 16방위 변환: (deg + 11.25) / 22.5 → 정수 인덱스. 값이 없으면 null", example = "158", nullable = true)
     val windDirection: Int?,
     @Schema(description = "강수형태 (기상청 PTY). 초단기실황은 하늘상태(SKY)를 주지 않는다. 값이 없으면 null", nullable = true)
@@ -33,7 +40,13 @@ data class HourlyForecast(
     val time: Instant,
     @Schema(description = "기온 (℃). 값이 없으면 null", nullable = true)
     val temperature: Double?,
-    @Schema(description = "체감온도 (℃). 계산에 필요한 값이 없으면 null", nullable = true)
+    @Schema(
+        description = "체감온도 (℃). 서버 계산값(기상청 산출식).\n" +
+            "- 여름철(5~9월): 기온과 습도로 계산\n" +
+            "- 겨울철(10~4월): 기온 ≤10℃ 그리고 풍속 ≥1.3m/s일 때만 산출\n\n" +
+            "산출 조건 밖이거나 계산에 필요한 값이 없으면 null",
+        nullable = true
+    )
     val feelsLike: Double?,
     @Schema(description = "강수확률 (%). 값이 없으면 null", nullable = true)
     val precipitationProbability: Int?,
