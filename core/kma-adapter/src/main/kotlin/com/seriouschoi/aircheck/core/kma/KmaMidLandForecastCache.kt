@@ -1,5 +1,7 @@
 package com.seriouschoi.aircheck.core.kma
 
+import com.seriouschoi.aircheck.core.kma.calc.toMidFcstTmFc
+import com.seriouschoi.aircheck.core.kma.calc.calculateMidFcstBase
 import com.seriouschoi.aircheck.core.domain.model.MidLandForecast
 import com.seriouschoi.aircheck.core.domain.model.MidLandForecastDay
 import com.seriouschoi.aircheck.core.domain.model.MidLandWeather

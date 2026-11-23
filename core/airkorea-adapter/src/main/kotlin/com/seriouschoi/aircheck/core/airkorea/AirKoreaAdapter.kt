@@ -1,5 +1,8 @@
 package com.seriouschoi.aircheck.core.airkorea
 
+import com.seriouschoi.aircheck.core.airkorea.dto.AirKoreaDto
+import com.seriouschoi.aircheck.core.airkorea.dto.AirKoreaItemDto
+import com.seriouschoi.aircheck.core.airkorea.dto.toMeasurementFlag
 import com.seriouschoi.aircheck.core.domain.exception.AirQualityNotFoundException
 import com.seriouschoi.aircheck.core.domain.model.AirQuality
 import com.seriouschoi.aircheck.core.domain.port.AirQualityPort

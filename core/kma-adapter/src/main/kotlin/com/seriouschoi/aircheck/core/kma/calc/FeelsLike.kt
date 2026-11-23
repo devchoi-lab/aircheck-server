@@ -1,4 +1,4 @@
-package com.seriouschoi.aircheck.core.kma
+package com.seriouschoi.aircheck.core.kma.calc
 
 /**
  * 체감온도. 기상청 기상자료개방포털의 산출식을 따른다.

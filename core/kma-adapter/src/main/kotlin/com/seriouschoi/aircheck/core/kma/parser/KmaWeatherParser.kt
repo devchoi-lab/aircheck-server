@@ -1,28 +1,19 @@
-package com.seriouschoi.aircheck.core.kma
+package com.seriouschoi.aircheck.core.kma.parser
 
 import com.seriouschoi.aircheck.core.domain.model.CurrentWeather
 import com.seriouschoi.aircheck.core.domain.model.DailyForecast
 import com.seriouschoi.aircheck.core.domain.model.HourlyForecast
 import com.seriouschoi.aircheck.core.domain.model.PrecipitationType
 import com.seriouschoi.aircheck.core.domain.model.SkyCondition
-import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
+import com.seriouschoi.aircheck.core.kma.KST_ZONE
+import com.seriouschoi.aircheck.core.kma.calc.calculateFeelsLike
 import com.seriouschoi.aircheck.core.kma.dto.FcstDto
 import com.seriouschoi.aircheck.core.kma.dto.NcstDto
-import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-internal val KST_ZONE: ZoneId = ZoneId.of("Asia/Seoul")
-
-internal val forecastJson = Json {
-    ignoreUnknownKeys = true
-    coerceInputValues = true
-}
-
-private val usageLogger = KotlinLogging.logger {}
 private val codeLogger = KotlinLogging.logger {}
 
 /** 기상청 결측값 기준: +900 이상, -900 이하는 Missing 값 */
@@ -44,57 +35,6 @@ private fun String.toSkyConditionOrNull(): SkyCondition? = toKmaCodeOrNull()?.le
         if (it == SkyCondition.UNKNOWN) codeLogger.warn { "정의되지 않은 SKY 코드: $code" }
     }
 }
-
-internal fun <T> runWithUsage(apiType: String, apiUsagePort: ApiUsagePort?, block: () -> T): T {
-    val startTime = System.currentTimeMillis()
-    return try {
-        val result = block()
-        val elapsed = System.currentTimeMillis() - startTime
-        apiUsagePort?.recordSuccess(apiType, elapsed)
-        usageLogger.debug { "$apiType success (${elapsed}ms)" }
-        result
-    } catch (e: Exception) {
-        apiUsagePort?.recordFailure(apiType, e.message)
-        usageLogger.error(e) { "$apiType failed: ${e.message}" }
-        throw e
-    }
-}
-
-// ── 시간 계산 ─────────────────────────────────────────────────────────────────
-
-/** 초단기실황 base_date/base_time 계산 ([kstNow]는 KST 기준 현재 시각. 테스트에서 시각을 고정하려고 인자로 받는다) */
-internal fun calculateBaseDateTime(kstNow: LocalDateTime = LocalDateTime.now(KST_ZONE)): Pair<String, String> {
-    val base = if (kstNow.minute < 40) kstNow.minusHours(1) else kstNow
-    return base.format(DateTimeFormatter.ofPattern("yyyyMMdd")) to
-            base.format(DateTimeFormatter.ofPattern("HH00"))
-}
-
-/** 단기예보 base_date/base_time 계산 (발표시각: 02·05·08·11·14·17·20·23시) */
-internal fun calculateVilageFcstBaseDateTime(kstNow: LocalDateTime = LocalDateTime.now(KST_ZONE)): Pair<String, String> {
-    val baseTimes = listOf(2, 5, 8, 11, 14, 17, 20, 23)
-    val baseHour = baseTimes.lastOrNull { it <= kstNow.hour - 1 } ?: 23
-    val base = if (baseHour == 23 && kstNow.hour < 23) kstNow.minusDays(1).withHour(23) else kstNow.withHour(baseHour)
-    return base.format(DateTimeFormatter.ofPattern("yyyyMMdd")) to
-            String.format("%02d00", baseHour)
-}
-
-/**
- * 중기예보 발표시각 계산 (KST, 06시·18시).
- * 중기예보의 "N일 후"는 이 발표일(날짜) 기준이다.
- */
-internal fun calculateMidFcstBase(kstNow: LocalDateTime = LocalDateTime.now(KST_ZONE)): LocalDateTime {
-    return when {
-        kstNow.hour < 6  -> kstNow.minusDays(1).withHour(18)
-        kstNow.hour < 18 -> kstNow.withHour(6)
-        else           -> kstNow.withHour(18)
-    }
-}
-
-/** 중기예보 API의 tmFc 파라미터 (yyyyMMddHH00) */
-internal fun LocalDateTime.toMidFcstTmFc(): String =
-    format(DateTimeFormatter.ofPattern("yyyyMMddHH00"))
-
-// ── 날씨 파싱 ─────────────────────────────────────────────────────────────────
 
 /**
  * 초단기실황 항목에서 현재 날씨를 만든다.
