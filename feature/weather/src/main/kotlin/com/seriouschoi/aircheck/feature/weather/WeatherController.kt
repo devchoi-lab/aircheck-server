@@ -1,11 +1,7 @@
 package com.seriouschoi.aircheck.feature.weather
 
-import com.seriouschoi.aircheck.core.domain.model.AirQuality
 import com.seriouschoi.aircheck.core.domain.model.CombinedWeather
-import com.seriouschoi.aircheck.core.domain.model.KmaWeather
-import com.seriouschoi.aircheck.core.domain.usecase.GetAirQualityUseCase
 import com.seriouschoi.aircheck.core.domain.usecase.GetCombinedWeatherUseCase
-import com.seriouschoi.aircheck.core.domain.usecase.GetWeatherForecastUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
@@ -30,9 +26,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v1")
 class WeatherController(
-    private val getCombinedWeatherUseCase: GetCombinedWeatherUseCase,
-    private val getWeatherForecastUseCase: GetWeatherForecastUseCase,
-    private val getAirQualityUseCase: GetAirQualityUseCase
+    private val getCombinedWeatherUseCase: GetCombinedWeatherUseCase
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -62,55 +56,6 @@ class WeatherController(
         ResponseEntity.ok(getCombinedWeatherUseCase.execute(lat, lng).getOrThrow())
 
     @Operation(
-        summary = "날씨 예보 조회",
-        description = "좌표 기반으로 현재 날씨와 48시간 예보를 조회합니다."
-    )
-    @ApiResponses(value = [
-        ApiResponse(
-            responseCode = "200",
-            description = "조회 성공",
-            content = [Content(schema = Schema(implementation = KmaWeather::class))]
-        ),
-        ApiResponse(
-            responseCode = "404",
-            description = "해당 좌표의 법정동을 찾을 수 없음"
-        )
-    ])
-    @GetMapping("/weather/forecast")
-    fun getForecast(
-        @Parameter(description = "위도", example = "37.5665")
-        @RequestParam lat: Double,
-        @Parameter(description = "경도", example = "126.9780")
-        @RequestParam lng: Double
-    ): ResponseEntity<KmaWeather> =
-        ResponseEntity.ok(getWeatherForecastUseCase.execute(lat, lng).getOrThrow())
-
-    @Operation(
-        summary = "대기질 조회",
-        description = "좌표 기반으로 대기질 정보를 조회합니다. " +
-                "PM2.5, PM10 밀도(μg/m³)와 등급을 반환합니다."
-    )
-    @ApiResponses(value = [
-        ApiResponse(
-            responseCode = "200",
-            description = "조회 성공",
-            content = [Content(schema = Schema(implementation = AirQuality::class))]
-        ),
-        ApiResponse(
-            responseCode = "404",
-            description = "해당 좌표의 법정동을 찾을 수 없거나, 쓸 수 있는 대기질 데이터가 없음"
-        )
-    ])
-    @GetMapping("/weather/air")
-    fun getAirQuality(
-        @Parameter(description = "위도", example = "37.5665")
-        @RequestParam lat: Double,
-        @Parameter(description = "경도", example = "126.9780")
-        @RequestParam lng: Double
-    ): ResponseEntity<AirQuality> =
-        ResponseEntity.ok(getAirQualityUseCase.execute(lat, lng).getOrThrow())
-
-    @Operation(
         summary = "다중 위치 일괄 조회",
         description = "여러 위치의 날씨/대기질 정보를 한 번에 조회합니다. " +
                 "최대 10개 위치까지 지원합니다."
@@ -125,7 +70,7 @@ class WeatherController(
     fun getBatchWeather(
         @RequestBody request: BatchWeatherRequest
     ): ResponseEntity<List<BatchWeatherItem>> {
-        val results = runBlocking {
+        val results: List<BatchWeatherItem> = runBlocking {
             request.locations.take(10).map { location ->
                 async(Dispatchers.IO) {
                     // 위치 하나가 실패해도 나머지는 돌려준다 (실패한 위치는 값이 null)
@@ -144,21 +89,3 @@ class WeatherController(
         return ResponseEntity.ok(results)
     }
 }
-
-// ── 배치 API 모델 ─────────────────────────────────────────────────────────
-
-data class BatchWeatherRequest(
-    val locations: List<LocationRequest>
-)
-
-data class LocationRequest(
-    val lat: Double,
-    val lng: Double
-)
-
-data class BatchWeatherItem(
-    val lat: Double,
-    val lng: Double,
-    val kmaWeather: KmaWeather?,
-    val airQuality: AirQuality?
-)
