@@ -118,7 +118,6 @@ internal fun parseCurrentWeather(
             "PTY" -> item.obsrValue.toPrecipitationTypeOrNull()?.let { pty = it }
         }
     }
-    val isDay = kstNow.hour in 6..18
     return CurrentWeather(
         temperature = temperature,
         feelsLike = calculateFeelsLike(kstNow.monthValue, temperature, windSpeed, humidity),
@@ -126,8 +125,7 @@ internal fun parseCurrentWeather(
         humidity = humidity,
         windSpeedMs = windSpeed,
         windDirection = windDirection,
-        precipitationType = pty,
-        isDay = isDay
+        precipitationType = pty
     )
 }
 
