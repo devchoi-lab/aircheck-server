@@ -12,11 +12,11 @@ package com.seriouschoi.aircheck.core.kma
  * 기상청 값은 관측값 기반의 일 최고(여름), 일 최저(겨울) 체감온도다. 시간별 값에 적용하는 것은 근사다.
  *
  * @param month 체감온도를 구할 시각의 월(1~12, KST)
- * @param windSpeed 풍속 (m/s). 공식에서는 km/h로 바꿔서 쓴다.
+ * @param windSpeedMs 풍속 (m/s). 공식에서는 km/h로 바꿔서 쓴다.
  */
-internal fun calculateFeelsLike(month: Int, temp: Double?, windSpeed: Double?, humidity: Int?): Double? {
+internal fun calculateFeelsLike(month: Int, temp: Double?, windSpeedMs: Double?, humidity: Int?): Double? {
     if (temp == null) return null
-    return if (month in 5..9) summerFeelsLike(temp, humidity) else winterFeelsLike(temp, windSpeed)
+    return if (month in 5..9) summerFeelsLike(temp, humidity) else winterFeelsLike(temp, windSpeedMs)
 }
 
 /**
@@ -39,10 +39,10 @@ private fun summerFeelsLike(temp: Double, humidity: Int?): Double? {
  *   Ta: 기온(℃), V: 풍속(km/h) = 풍속(m/s) × 3.6
  * ```
  */
-private fun winterFeelsLike(temp: Double, windSpeed: Double?): Double? {
+private fun winterFeelsLike(temp: Double, windSpeedMs: Double?): Double? {
     if (temp > WINTER_MAX_TEMP) return null
-    if (windSpeed == null || windSpeed < WINTER_MIN_WIND_MS) return null
-    val windKmh = windSpeed * MS_TO_KMH
+    if (windSpeedMs == null || windSpeedMs < WINTER_MIN_WIND_MS) return null
+    val windKmh = windSpeedMs * MS_TO_KMH
     val v016 = Math.pow(windKmh, 0.16)
     return 13.12 + 0.6215 * temp - 11.37 * v016 + 0.3965 * v016 * temp
 }
