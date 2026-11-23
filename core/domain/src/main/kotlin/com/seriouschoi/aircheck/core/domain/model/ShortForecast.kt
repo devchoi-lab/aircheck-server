@@ -31,9 +31,7 @@ data class CurrentWeather(
     @Schema(description = "풍향 (deg, 0~360). 16방위 변환: (deg + 11.25) / 22.5 → 정수 인덱스. 값이 없으면 null", example = "158", nullable = true)
     val windDirection: Int?,
     @Schema(description = "강수형태 (기상청 PTY). 초단기실황은 하늘상태(SKY)를 주지 않는다. 값이 없으면 null", nullable = true)
-    val precipitationType: PrecipitationType?,
-    @Schema(description = "낮 여부. KST 기준 6~18시이면 true", example = "true")
-    val isDay: Boolean
+    val precipitationType: PrecipitationType?
 )
 
 data class HourlyForecast(
