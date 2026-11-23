@@ -29,7 +29,7 @@ class ParseCurrentWeatherTest {
         assertEquals(20.7, result.temperature)
         assertEquals(49, result.humidity)
         assertEquals(0.0, result.precipitation)
-        assertEquals(1.8, result.windSpeed)
+        assertEquals(1.8, result.windSpeedMs)
         assertEquals(158, result.windDirection)
         assertEquals(PrecipitationType.NONE, result.precipitationType)
     }
@@ -54,7 +54,7 @@ class ParseCurrentWeatherTest {
         assertNull(result.feelsLike)
         assertNull(result.precipitation)
         assertNull(result.humidity)
-        assertNull(result.windSpeed)
+        assertNull(result.windSpeedMs)
         assertNull(result.windDirection)
         assertNull(result.precipitationType)
     }

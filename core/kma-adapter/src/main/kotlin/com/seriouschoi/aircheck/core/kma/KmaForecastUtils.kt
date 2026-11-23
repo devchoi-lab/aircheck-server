@@ -124,7 +124,7 @@ internal fun parseCurrentWeather(
         feelsLike = calculateFeelsLike(kstNow.monthValue, temperature, windSpeed, humidity),
         precipitation = precipitation,
         humidity = humidity,
-        windSpeed = windSpeed,
+        windSpeedMs = windSpeed,
         windDirection = windDirection,
         precipitationType = pty,
         isDay = isDay

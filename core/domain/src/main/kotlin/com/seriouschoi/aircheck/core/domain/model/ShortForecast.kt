@@ -27,7 +27,7 @@ data class CurrentWeather(
     @Schema(description = "습도 (%). 값이 없으면 null", example = "49", nullable = true)
     val humidity: Int?,
     @Schema(description = "풍속 (m/s). 값이 없으면 null", example = "1.8", nullable = true)
-    val windSpeed: Double?,
+    val windSpeedMs: Double?,
     @Schema(description = "풍향 (deg, 0~360). 16방위 변환: (deg + 11.25) / 22.5 → 정수 인덱스. 값이 없으면 null", example = "158", nullable = true)
     val windDirection: Int?,
     @Schema(description = "강수형태 (기상청 PTY). 초단기실황은 하늘상태(SKY)를 주지 않는다. 값이 없으면 null", nullable = true)
