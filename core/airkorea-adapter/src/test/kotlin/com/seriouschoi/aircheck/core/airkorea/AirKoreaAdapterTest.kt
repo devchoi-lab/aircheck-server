@@ -1,6 +1,7 @@
 package com.seriouschoi.aircheck.core.airkorea
 
 import com.seriouschoi.aircheck.core.airkorea.api.AirKoreaApi
+import com.seriouschoi.aircheck.core.airkorea.cache.AirQualityCache
 import com.seriouschoi.aircheck.core.airkorea.cache.StationCacheService
 import com.seriouschoi.aircheck.core.airkorea.cache.StationInfo
 import com.seriouschoi.aircheck.core.domain.exception.AirQualityNotFoundException
@@ -134,10 +135,12 @@ class AirKoreaAdapterTest {
         val stationCacheService = mockk<StationCacheService>()
         every { stationCacheService.loadStations() } returns stations.toMap()
         return AirKoreaAdapter(
-            apiKey = "TEST",
-            airKoreaApi = airKoreaApi,
-            apiUsagePort = null,
-            stationCacheService = stationCacheService
+            AirQualityCache(
+                apiKey = "TEST",
+                airKoreaApi = airKoreaApi,
+                apiUsagePort = null,
+                stationCacheService = stationCacheService
+            )
         )
     }
 

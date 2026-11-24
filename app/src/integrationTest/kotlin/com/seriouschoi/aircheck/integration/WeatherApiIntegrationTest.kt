@@ -124,7 +124,7 @@ class WeatherApiIntegrationTest(
     }
 
     @Test
-    fun `같은 좌표로 두 번 부르면 기상청 API는 한 번만 호출된다`() {
+    fun `같은 좌표로 두 번 부르면 외부 API는 한 번만 호출된다`() {
         val url = "/api/v1/weather?lat=37.5665&lng=126.9780"
 
         val first = rest.getForEntity(url, String::class.java)
@@ -132,14 +132,33 @@ class WeatherApiIntegrationTest(
 
         assertEquals(200, first.statusCode.value())
         assertEquals(first.body, second.body)
-        // 에어코리아 대기질은 캐시가 없어 제외한다. 캐시 복구(#149) 후 검증에 추가한다.
         listOf(
             "/kma/short/getUltraSrtNcst",
             "/kma/short/getVilageFcst",
             "/kma/mid/getMidLandFcst",
-            "/kma/mid/getMidTa"
+            "/kma/mid/getMidTa",
+            "/airkorea/air/getMsrstnAcctoRltmMesureDnsty"
         ).forEach { path ->
             assertEquals(1, FakeExternalApis.requestCount(path), path)
         }
+    }
+
+    @Test
+    fun `대기질 조회가 실패한 결과는 캐시하지 않아, 복구되면 다음 요청에서 받아온다`() {
+        val url = "/api/v1/weather?lat=37.5665&lng=126.9780"
+        FakeExternalApis.stubAirQualityFailure()
+        val failed: JsonNode = objectMapper.readTree(rest.getForEntity(url, String::class.java).body)
+        assertTrue(failed.path("airQuality").isNull)
+
+        FakeExternalApis.stubAirQualitySuccess()
+        val recovered: JsonNode = objectMapper.readTree(rest.getForEntity(url, String::class.java).body)
+
+        assertEquals(
+            FakeResponses.PM10,
+            recovered.path("airQuality")
+                .path("pm10")
+                .asInt()
+        )
+        assertEquals(0, recovered.path("errors").size())
     }
 }
