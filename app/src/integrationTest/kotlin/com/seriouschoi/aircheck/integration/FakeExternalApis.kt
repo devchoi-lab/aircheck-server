@@ -3,6 +3,7 @@ package com.seriouschoi.aircheck.integration
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
 import java.time.LocalDateTime
@@ -39,6 +40,18 @@ object FakeExternalApis {
         stubJson("/kma/mid/getMidTa", FakeResponses.midTa())
         stubJson("/airkorea/air/getMsrstnAcctoRltmMesureDnsty", FakeResponses.airQuality(now))
     }
+
+    /** 대기질 조회만 서버 오류(500)로 응답하는 상태. 나머지는 정상. */
+    fun stubAirQualityFailure() {
+        server.stubFor(
+            get(urlPathEqualTo("/airkorea/air/getMsrstnAcctoRltmMesureDnsty"))
+                .willReturn(aResponse().withStatus(500))
+        )
+    }
+
+    /** 가짜 서버가 해당 경로로 받은 요청 수. */
+    fun requestCount(path: String): Int =
+        server.findAll(getRequestedFor(urlPathEqualTo(path))).size
 
     fun reset() = server.resetAll()
 
@@ -173,7 +186,7 @@ object FakeResponses {
         return kmaEnvelope("""{ "regId": "11B10101", $days }""", 1)
     }
 
-    /** 서울 중구(시청 근처) 측정소 하나. dmX=위도, dmY=경도로 가정한 값. */
+    /** 서울 중구(시청 근처) 측정소 하나. ver=1.1 기준이라 dmX=경도, dmY=위도다. */
     fun stations(): String = """
         {
           "response": {
@@ -183,8 +196,8 @@ object FakeResponses {
                 {
                   "stationName": "중구",
                   "addr": "서울 중구 덕수궁길 15",
-                  "dmX": "37.564639",
-                  "dmY": "126.975961"
+                  "dmX": "126.975961",
+                  "dmY": "37.564639"
                 }
               ]
             }

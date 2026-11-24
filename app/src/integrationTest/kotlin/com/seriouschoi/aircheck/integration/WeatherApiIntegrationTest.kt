@@ -3,6 +3,7 @@ package com.seriouschoi.aircheck.integration
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -83,5 +84,62 @@ class WeatherApiIntegrationTest(
             body.path("errors")
                 .size()
         )
+    }
+
+    @Test
+    fun `대기질만 실패하면 날씨는 그대로 주고 대기질은 null, errors에 이유를 담는다`() {
+        FakeExternalApis.stubAirQualityFailure()
+
+        val response = rest.getForEntity("/api/v1/weather?lat=37.5665&lng=126.9780", String::class.java)
+
+        assertEquals(200, response.statusCode.value())
+        val body: JsonNode = objectMapper.readTree(response.body)
+        assertEquals(
+            FakeResponses.CURRENT_TEMPERATURE,
+            body.path("kmaWeather")
+                .path("shortForecast")
+                .path("current")
+                .path("temperature")
+                .asDouble()
+        )
+        assertTrue(body.path("airQuality").isNull)
+        assertEquals(1, body.path("errors").size())
+        assertEquals(
+            "AIR_QUALITY",
+            body.path("errors").path(0).path("target").asText()
+        )
+        assertEquals(
+            "API_UNAVAILABLE",
+            body.path("errors").path(0).path("errorCode").asText()
+        )
+    }
+
+    @Test
+    fun `서비스 지역 밖 좌표는 404이고 외부 API를 부르지 않는다`() {
+        // 도쿄: 가장 가까운 법정동이 50km보다 멀다.
+        val response = rest.getForEntity("/api/v1/weather?lat=35.6762&lng=139.6503", String::class.java)
+
+        assertEquals(404, response.statusCode.value())
+        assertTrue(FakeExternalApis.server.allServeEvents.isEmpty())
+    }
+
+    @Test
+    fun `같은 좌표로 두 번 부르면 기상청 API는 한 번만 호출된다`() {
+        val url = "/api/v1/weather?lat=37.5665&lng=126.9780"
+
+        val first = rest.getForEntity(url, String::class.java)
+        val second = rest.getForEntity(url, String::class.java)
+
+        assertEquals(200, first.statusCode.value())
+        assertEquals(first.body, second.body)
+        // 에어코리아 대기질은 캐시가 없어 제외한다. 캐시 복구(#149) 후 검증에 추가한다.
+        listOf(
+            "/kma/short/getUltraSrtNcst",
+            "/kma/short/getVilageFcst",
+            "/kma/mid/getMidLandFcst",
+            "/kma/mid/getMidTa"
+        ).forEach { path ->
+            assertEquals(1, FakeExternalApis.requestCount(path), path)
+        }
     }
 }

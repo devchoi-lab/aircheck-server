@@ -76,10 +76,21 @@ data class StationBodyDto(val body: StationItemsDto? = null)
 @Serializable
 data class StationItemsDto(val items: List<StationItemDto> = emptyList())
 
+/**
+ * 측정소 목록 조회(getMsrstnList) 응답의 측정소 한 건.
+ * 출처: 에어코리아 측정소정보 기술문서 v1.2
+ *
+ * ver=1.1로 호출한다 (StationCacheService.loadStations).
+ * 1.1 이전 버전은 dmX와 dmY가 뒤바뀌어 제공되므로, ver을 바꾸면 좌표 해석이 달라진다.
+ */
 @Serializable
 data class StationItemDto(
+    /** 측정소명. 대기질 조회의 키로 쓴다. 예: "종로구" */
     val stationName: String = "",
+    /** 측정소 주소. 맨 앞 단어를 시도명으로 쓴다. 예: "서울 종로구 종로35가길 19종로5,6가 동 주민센터" */
     val addr: String = "",
+    /** 경도 (WGS84)(longitude). ver=1.1 기준. 예: "127.005028" */
     val dmX: String = "",
+    /** 위도 (WGS84)(latitude). ver=1.1 기준. 예: "37.572025" */
     val dmY: String = ""
 )
