@@ -23,40 +23,19 @@
 
 ### 멀티모듈 + 헥사고날 (Port-Adapter)
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                        :app                              │
-│              (부트스트랩, DI 조립, 설정)                  │
-└─────────────────────────┬───────────────────────────────┘
-                          │
-      ┌─────────────┬─────┴───────┬─────────────┐
-      ▼             ▼             ▼             ▼
-┌────────────┐┌────────────┐┌────────────┐┌────────────┐
-│  :weather  ││   :push    ││:app-version││   :admin   │
-│  날씨 API  ││ 푸시 구독  ││ 버전 확인  ││  관리 API  │
-└─────┬──────┘└─────┬──────┘└─────┬──────┘└─────┬──────┘
-      └─────────────┴──────┬──────┴─────────────┘
-                           ▼
-┌─────────────────────────────────────────────────────────┐
-│                    :core:service                         │
-│              (비즈니스 로직, UseCase)                    │
-└─────────────────────────┬───────────────────────────────┘
-                          │
-┌─────────────────────────┴───────────────────────────────┐
-│                    :core:domain                          │
-│              (Port 인터페이스, 도메인 모델)              │
-└─────────────────────────┬───────────────────────────────┘
-                          │
-        ┌─────────┬───────┴──┬──────────┐
-        ▼         ▼          ▼          ▼
-    ┌────────┐┌────────┐┌────────┐┌────────────┐
-    │  kma   ││airkor- ││  fcm   ││persistence │
-    │adapter ││ea-adap ││adapter ││  -adapter  │
-    ├────────┤├────────┤├────────┤├────────────┤
-    │ 기상청 ││에어코리││Firebase││   MariaDB  │
-    │  API   ││아 API  ││  FCM   ││            │
-    └────────┘└────────┘└────────┘└────────────┘
-```
+의존 방향은 `→`로 쓴다 (왼쪽이 오른쪽을 사용한다).
+
+- `:app` → 모든 `:feature:*`, `:core:*` (부트스트랩, 빈 조립)
+- `:feature:weather`, `:feature:push`, `:feature:app-version`, `:feature:admin` → `:core:domain`
+- `:core:service` → `:core:domain`
+- `:core:kma-adapter`, `:core:airkorea-adapter`, `:core:fcm-adapter`, `:core:firebase-adapter`, `:core:persistence-adapter`, `:core:bjd-matcher` → `:core:domain`
+- `:core:kma-adapter` → `:util:kma-region`
+- `:core:domain` → `:util:logging`
+
+핵심 규칙:
+- `:app`을 뺀 모든 모듈은 다른 `:core`/`:feature` 모듈을 쓰지 않고 `:core:domain`(Port 인터페이스, 도메인 모델, UseCase)만 바라본다.
+- 어댑터끼리, feature끼리는 서로 의존하지 않는다.
+- 어댑터는 `:core:domain`의 Port를 구현하고, feature는 UseCase를 호출한다. 둘을 이어 붙이는 곳은 `:app`뿐이다.
 
 ### 모듈 구성
 
@@ -73,6 +52,10 @@
 | `:core:airkorea-adapter` | 에어코리아 API |
 | `:core:fcm-adapter` | Firebase FCM 푸시 |
 | `:core:persistence-adapter` | JPA + MariaDB |
+| `:core:firebase-adapter` | Firebase 초기화, AppCheck 필터 |
+| `:core:bjd-matcher` | 좌표 → 법정동 매칭 |
+| `:util:kma-region` | 기상청 예보구역 코드 매핑 |
+| `:util:logging` | 로깅 확장 (에러 ID 부여) |
 
 ---
 
