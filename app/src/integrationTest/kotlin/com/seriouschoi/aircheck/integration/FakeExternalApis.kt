@@ -41,6 +41,10 @@ object FakeExternalApis {
         stubJson("/airkorea/air/getMsrstnAcctoRltmMesureDnsty", FakeResponses.airQuality(now))
     }
 
+    /** 대기질 조회가 다시 정상 응답하는 상태. 실패 뒤 복구를 만들 때 쓴다. */
+    fun stubAirQualitySuccess() =
+        stubJson("/airkorea/air/getMsrstnAcctoRltmMesureDnsty", FakeResponses.airQuality(LocalDateTime.now(kst)))
+
     /** 대기질 조회만 서버 오류(500)로 응답하는 상태. 나머지는 정상. */
     fun stubAirQualityFailure() {
         server.stubFor(
