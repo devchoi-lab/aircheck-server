@@ -18,7 +18,6 @@ import com.seriouschoi.aircheck.core.kma.dto.FcstDto
 import com.seriouschoi.aircheck.core.kma.dto.KmaApiDto
 import com.seriouschoi.aircheck.core.kma.dto.NcstDto
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 
@@ -29,7 +28,6 @@ import org.springframework.stereotype.Component
  * KmaWeatherAdapter에서 Result.runCatching으로 감싸서 호출.
  */
 @Component
-@ConditionalOnProperty(name = ["weather.provider"], havingValue = "kma")
 class KmaShortForecastCache(
     @Value("\${kma.api.key:}") private val apiKey: String,
     private val kmaApi: KmaApi,

@@ -88,10 +88,10 @@ WeatherService (application)
 WeatherPort      AirQualityPort       (Cache)
   │                  │                    │
   ▼                  ▼                    │
-OpenMeteoAdapter  AirKoreaAdapter        │
+KmaWeatherAdapter AirKoreaAdapter        │
   │                  │                    │
   ▼                  ▼                    │
-Open-Meteo API   에어코리아 API          │
+기상청 API       에어코리아 API          │
   │                  │                    │
   └──────────────────┴────────────────────┘
                      │
