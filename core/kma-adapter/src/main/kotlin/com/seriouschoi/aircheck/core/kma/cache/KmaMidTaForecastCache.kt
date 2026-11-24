@@ -12,13 +12,11 @@ import com.seriouschoi.aircheck.core.domain.port.ApiUsagePort
 import com.seriouschoi.aircheck.core.kma.dto.KmaApiDto
 import com.seriouschoi.aircheck.core.kma.dto.MidTaDto
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 import java.time.LocalDate
 
 @Component
-@ConditionalOnProperty(name = ["weather.provider"], havingValue = "kma")
 class KmaMidTaForecastCache(
     @Value("\${kma.api.key:}") private val apiKey: String,
     private val kmaMidApi: KmaMidApi,

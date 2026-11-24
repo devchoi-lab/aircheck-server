@@ -40,7 +40,6 @@ class WeatherApiIntegrationTest(
             registry.add("spring.datasource.username") { mariaDb.username }
             registry.add("spring.datasource.password") { mariaDb.password }
 
-            registry.add("weather.provider") { "kma" }
             registry.add("appcheck.enabled") { "false" }
             registry.add("airkorea.api-key") { "test-key" }
             registry.add("kma.api.key") { "test-key" }

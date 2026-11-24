@@ -28,7 +28,7 @@ class OpenApiConfig {
                     - 등급은 한국 환경부 기준 적용
                     
                     ## 데이터 출처
-                    - 날씨: Open-Meteo API
+                    - 날씨: 기상청
                     - 대기질: 에어코리아 (한국환경공단)
                 """.trimIndent())
                 .version("1.0.0")

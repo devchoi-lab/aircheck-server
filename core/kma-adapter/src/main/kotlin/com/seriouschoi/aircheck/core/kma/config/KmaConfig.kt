@@ -3,7 +3,6 @@ package com.seriouschoi.aircheck.core.kma.config
 import com.seriouschoi.aircheck.core.kma.api.KmaMidApi
 import com.seriouschoi.aircheck.core.kma.api.KmaApi
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.client.RestClient
@@ -11,7 +10,6 @@ import org.springframework.web.client.support.RestClientAdapter
 import org.springframework.web.service.invoker.HttpServiceProxyFactory
 
 @Configuration
-@ConditionalOnProperty(name = ["weather.provider"], havingValue = "kma")
 class KmaConfig(
     @Value("\${kma.api.base-url}") private val baseUrl: String,
     @Value("\${kma.api.mid-url}") private val midUrl: String

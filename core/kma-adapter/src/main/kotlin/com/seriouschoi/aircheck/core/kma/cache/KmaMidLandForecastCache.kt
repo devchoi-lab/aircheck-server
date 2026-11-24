@@ -14,7 +14,6 @@ import com.seriouschoi.aircheck.core.kma.dto.KmaApiDto
 import com.seriouschoi.aircheck.core.kma.dto.MidLandFcstDto
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Component
 import java.time.LocalDate
@@ -26,7 +25,6 @@ import java.time.LocalDate
  * 강원도는 시군구로 영동/영서 예보구역이 갈리므로 도 코드(doCode)가 아니라 시군구 코드로 구분한다.
  */
 @Component
-@ConditionalOnProperty(name = ["weather.provider"], havingValue = "kma")
 class KmaMidLandForecastCache(
     @Value("\${kma.api.key:}") private val apiKey: String,
     private val kmaMidApi: KmaMidApi,

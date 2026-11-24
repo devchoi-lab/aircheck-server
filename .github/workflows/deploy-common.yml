@@ -95,7 +95,6 @@ jobs:
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
           DB_ROOT_PASSWORD=${{ secrets.DB_ROOT_PASSWORD }}
           AIRKOREA_API_KEY=${{ secrets.AIRKOREA_API_KEY }}
-          WEATHER_PROVIDER=kma
           ADMIN_API_KEY=${{ secrets.ADMIN_API_KEY }}
           APPCHECK_ENABLED=${{ inputs.appcheck_enabled }}
           FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}

@@ -9,7 +9,6 @@ import com.seriouschoi.aircheck.core.domain.model.MidTaForecast
 import com.seriouschoi.aircheck.core.domain.model.ShortForecast
 import com.seriouschoi.aircheck.core.domain.port.KmaWeatherPort
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 /**
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Component
  * 실패는 삼키지 않고 Result.failure로 돌려준다.
  */
 @Component
-@ConditionalOnProperty(name = ["weather.provider"], havingValue = "kma")
 class KmaWeatherAdapter(
     private val shortForecastCache: KmaShortForecastCache,
     private val midLandForecastCache: KmaMidLandForecastCache,
