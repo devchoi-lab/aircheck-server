@@ -166,15 +166,50 @@ ssh ec2-user@서버 "sudo systemctl restart aircheck"
 
 ## 로컬 실행
 
-```bash
-# 환경변수 설정
-export AIRKOREA_API_KEY=your-key
-export KMA_API_KEY=your-key
-export ADMIN_API_KEY=your-key
+### 1. 환경변수: `local.properties`
 
-# 실행
+프로젝트 루트의 `local.properties`(`.gitignore`에 포함, 커밋하지 않는다)에 적으면 `bootRun`이 환경변수로 넘겨준다.
+(`app/build.gradle.kts`의 `bootRun` 설정)
+
+```properties
+DB_USER=aircheck
+DB_PASSWORD=aircheck
+AIRKOREA_API_KEY=your-key
+ADMIN_API_KEY=your-key
+WEATHER_PROVIDER=kma
+```
+
+DB 계정은 `docker-compose.yml`의 `db` 서비스와 같은 값(`aircheck` / `aircheck`)을 쓴다.
+
+### 2. DB 실행
+
+`bootRun`은 DB를 띄워주지 않는다. MariaDB를 도커로 먼저 실행한다.
+
+```bash
+docker compose up db -d
+```
+
+### 3. 서버 실행
+
+```bash
 ./gradlew :app:bootRun
 ```
+
+로그에 `Started AircheckServerApplication`이 나오면 정상이다.
+
+---
+
+## 테스트
+
+```bash
+# 단위 테스트 (Docker 불필요)
+./gradlew test
+
+# 통합 테스트 (Docker 필요, 느림)
+./gradlew :app:integrationTest
+```
+
+- 통합 테스트는 `app/src/integrationTest`에 있다. MariaDB 컨테이너(Testcontainers)와 기상청/에어코리아 가짜 서버(WireMock)로 서버 전체를 띄워 API를 호출한다.
 
 ---
 
