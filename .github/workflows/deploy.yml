@@ -10,7 +10,12 @@ permissions:
   packages: write
 
 jobs:
+  # 테스트 통과 후에만 이미지 빌드/배포 진행
+  test:
+    uses: ./.github/workflows/test.yml
+
   deploy:
+    needs: test
     uses: ./.github/workflows/deploy-common.yml
     with:
       environment: prod
