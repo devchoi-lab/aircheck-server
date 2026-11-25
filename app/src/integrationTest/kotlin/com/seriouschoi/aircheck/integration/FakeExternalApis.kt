@@ -2,6 +2,7 @@ package com.seriouschoi.aircheck.integration
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
@@ -38,12 +39,26 @@ object FakeExternalApis {
         stubJson("/kma/short/getVilageFcst", FakeResponses.vilageFcst(now))
         stubJson("/kma/mid/getMidLandFcst", FakeResponses.midLand())
         stubJson("/kma/mid/getMidTa", FakeResponses.midTa())
-        stubJson("/airkorea/air/getMsrstnAcctoRltmMesureDnsty", FakeResponses.airQuality(now))
+        stubAirQualitySuccess()
     }
 
-    /** 대기질 조회가 다시 정상 응답하는 상태. 실패 뒤 복구를 만들 때 쓴다. */
-    fun stubAirQualitySuccess() =
-        stubJson("/airkorea/air/getMsrstnAcctoRltmMesureDnsty", FakeResponses.airQuality(LocalDateTime.now(kst)))
+    /**
+     * 대기질 조회가 정상 응답하는 상태. 실패 뒤 복구를 만들 때도 쓴다.
+     * 측정소 이름(stationName 파라미터)별로 다른 값을 돌려준다.
+     */
+    fun stubAirQualitySuccess() {
+        val now = LocalDateTime.now(kst)
+        FakeResponses.PM10_BY_STATION.forEach { (stationName, pm10) ->
+            server.stubFor(
+                get(urlPathEqualTo("/airkorea/air/getMsrstnAcctoRltmMesureDnsty"))
+                    .withQueryParam("stationName", equalTo(stationName))
+                    .willReturn(
+                        aResponse().withStatus(200).withHeader("Content-Type", "application/json")
+                            .withBody(FakeResponses.airQuality(now, stationName, pm10))
+                    )
+            )
+        }
+    }
 
     /** 대기질 조회만 서버 오류(500)로 응답하는 상태. 나머지는 정상. */
     fun stubAirQualityFailure() {
@@ -78,7 +93,12 @@ object FakeResponses {
 
     /** 테스트가 기대값으로 쓰는 값. 응답 생성과 테스트가 같은 상수를 공유한다. */
     const val CURRENT_TEMPERATURE = 20.7
-    const val PM10 = 45
+    const val SEOUL_STATION = "중구"
+    const val BUSAN_STATION = "광복동"
+
+    /** 측정소별 PM10. 서로 달라서, 어느 측정소가 뽑혔는지 값으로도 구별된다. */
+    val PM10_BY_STATION = mapOf(SEOUL_STATION to 45, BUSAN_STATION to 80)
+    val PM10 = PM10_BY_STATION.getValue(SEOUL_STATION)
 
     private val dateFmt = DateTimeFormatter.ofPattern("yyyyMMdd")
     private val timeFmt = DateTimeFormatter.ofPattern("HHmm")
@@ -190,7 +210,10 @@ object FakeResponses {
         return kmaEnvelope("""{ "regId": "11B10101", $days }""", 1)
     }
 
-    /** 서울 중구(시청 근처) 측정소 하나. ver=1.1 기준이라 dmX=경도, dmY=위도다. */
+    /**
+     * 서로 먼 측정소 둘: 서울 중구(시청 근처), 부산 중구(광복동).
+     * ver=1.1 기준이라 dmX=경도, dmY=위도다. 한 곳뿐이면 좌표를 뒤바꿔 읽어도 그 곳이 뽑혀서 해석 오류를 못 잡는다. (#151)
+     */
     fun stations(): String = """
         {
           "response": {
@@ -198,10 +221,16 @@ object FakeResponses {
             "body": {
               "items": [
                 {
-                  "stationName": "중구",
+                  "stationName": "$SEOUL_STATION",
                   "addr": "서울 중구 덕수궁길 15",
                   "dmX": "126.975961",
                   "dmY": "37.564639"
+                },
+                {
+                  "stationName": "$BUSAN_STATION",
+                  "addr": "부산 중구 중앙대로 1",
+                  "dmX": "129.032000",
+                  "dmY": "35.098000"
                 }
               ]
             }
@@ -209,7 +238,7 @@ object FakeResponses {
         }
     """.trimIndent()
 
-    fun airQuality(now: LocalDateTime): String {
+    fun airQuality(now: LocalDateTime, stationName: String, pm10: Int): String {
         val dataTime = now.withMinute(0).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
         return """
             {
@@ -218,10 +247,10 @@ object FakeResponses {
                 "body": {
                   "items": [
                     {
-                      "stationName": "중구",
+                      "stationName": "$stationName",
                       "dataTime": "$dataTime",
                       "mangName": "도시대기",
-                      "pm10Value": "$PM10", "pm10Grade": "2", "pm10Grade1h": "2",
+                      "pm10Value": "$pm10", "pm10Grade": "2", "pm10Grade1h": "2",
                       "pm25Value": "22", "pm25Grade": "2", "pm25Grade1h": "2",
                       "khaiValue": "70", "khaiGrade": "2",
                       "so2Value": "0.003", "so2Grade": "1",
