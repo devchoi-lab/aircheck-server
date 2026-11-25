@@ -7,5 +7,5 @@ dependencies {
     implementation(project(":core:domain"))
 
     // Spring Web (Controller)
-    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation(libs.spring.boot.starter.web)
 }

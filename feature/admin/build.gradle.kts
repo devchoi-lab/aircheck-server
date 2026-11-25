@@ -7,13 +7,13 @@ dependencies {
     implementation(project(":core:domain"))
 
     // Spring Web (Controller)
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation(libs.spring.boot.starter.web)
+    implementation(libs.spring.boot.starter.validation)
     
     // OpenAPI / Swagger
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+    implementation(libs.springdoc.openapi.webmvc.ui)
     
     // Test
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("io.mockk:mockk:1.13.16")
+    testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.mockk)
 }

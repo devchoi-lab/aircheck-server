@@ -28,8 +28,10 @@ configurations[integrationTestSourceSet.implementationConfigurationName]
 configurations[integrationTestSourceSet.runtimeOnlyConfigurationName]
     .extendsFrom(configurations.runtimeOnly.get())
 
-// Docker 29(최소 API 1.40)는 Spring Boot 3.4.4가 관리하는 Testcontainers 1.20.x(API 1.32)를 거부한다.
-extra["testcontainers.version"] = "1.21.4"
+// Spring Boot BOM의 Testcontainers 버전(1.20.x)을 덮어쓴다. Docker 29는 이 버전의 Docker API(1.32)를 거부한다. (#138)
+// mariadb/junit-jupiter가 전이로 끌어오는 코어(testcontainers, jdbc, database-commons)까지 맞추려고 필요하다.
+// 지우면 이 코어들만 BOM 버전으로 내려간다. 확인: ./gradlew :app:dependencyInsight --dependency org.testcontainers --configuration integrationTestRuntimeClasspath
+extra["testcontainers.version"] = libs.versions.testcontainers.get()
 
 dependencies {
     // Core modules
@@ -49,32 +51,32 @@ dependencies {
     implementation(project(":feature:admin"))
     
     // Spring Boot
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-cache")
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation(libs.spring.boot.starter.web)
+    implementation(libs.spring.boot.starter.cache)
+    implementation(libs.spring.boot.starter.actuator)
+    implementation(libs.spring.boot.starter.data.jpa)
     
     // Kotlin
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation(libs.jackson.module.kotlin)
+    implementation(libs.kotlin.reflect)
     
     // Caffeine Cache
-    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
+    implementation(libs.caffeine)
     
     // OpenAPI / Swagger UI
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
+    implementation(libs.springdoc.openapi.webmvc.ui)
     
     // Database
-    runtimeOnly("org.mariadb.jdbc:mariadb-java-client:3.3.3")
+    runtimeOnly(libs.mariadb.java.client)
 
     // Test
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation(libs.spring.boot.starter.test)
 
     // 통합 테스트(src/integrationTest): 진짜 MariaDB 컨테이너 + 외부 API(기상청/에어코리아) 가짜 서버
-    "integrationTestImplementation"("org.springframework.boot:spring-boot-starter-test")
-    "integrationTestImplementation"("org.testcontainers:mariadb")
-    "integrationTestImplementation"("org.testcontainers:junit-jupiter")
-    "integrationTestImplementation"("org.wiremock:wiremock-standalone:3.9.2")
+    "integrationTestImplementation"(libs.spring.boot.starter.test)
+    "integrationTestImplementation"(libs.testcontainers.mariadb)
+    "integrationTestImplementation"(libs.testcontainers.junit.jupiter)
+    "integrationTestImplementation"(libs.wiremock.standalone)
 }
 
 tasks.register<Test>("integrationTest") {

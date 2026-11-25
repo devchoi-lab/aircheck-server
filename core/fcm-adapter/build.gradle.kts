@@ -7,14 +7,14 @@ dependencies {
     implementation(project(":core:domain"))
     
     // Spring
-    implementation("org.springframework:spring-context:6.2.4")
+    implementation(libs.spring.context)
     
     // Jakarta (for @PostConstruct)
-    implementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
+    implementation(libs.jakarta.annotation.api)
     
     // Firebase Admin (FCM)
-    implementation("com.google.firebase:firebase-admin:9.3.0")
+    implementation(libs.firebase.admin)
     
     // Logging
-    implementation("org.slf4j:slf4j-api:2.0.16")
+    implementation(libs.slf4j.api)
 }

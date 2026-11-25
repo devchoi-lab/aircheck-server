@@ -8,20 +8,20 @@ dependencies {
     implementation(project(":core:domain"))
     
     // Spring
-    implementation("org.springframework:spring-context:6.2.4")
-    implementation("org.springframework:spring-web:6.2.4")
+    implementation(libs.spring.context)
+    implementation(libs.spring.web)
     
     // Jakarta
-    implementation("jakarta.servlet:jakarta.servlet-api:6.0.0")
-    implementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
+    implementation(libs.jakarta.servlet.api)
+    implementation(libs.jakarta.annotation.api)
     
     // Firebase Admin (App Check 검증용)
-    implementation("com.google.firebase:firebase-admin:9.3.0")
+    implementation(libs.firebase.admin)
     
     // JWT 검증
-    implementation("com.auth0:java-jwt:4.4.0")
-    implementation("com.auth0:jwks-rsa:0.22.1")
+    implementation(libs.java.jwt)
+    implementation(libs.jwks.rsa)
     
     // Logging
-    implementation("org.slf4j:slf4j-api:2.0.16")
+    implementation(libs.slf4j.api)
 }

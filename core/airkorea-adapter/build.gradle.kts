@@ -8,15 +8,15 @@ dependencies {
     implementation(project(":core:domain"))
 
     // Spring
-    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation(libs.spring.boot.starter.web)
 
     // Kotlin
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    implementation(libs.kotlinx.serialization.json)
 
     // Logging
-    implementation("org.slf4j:slf4j-api:2.0.16")
+    implementation(libs.slf4j.api)
 
     // Test
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
-    testImplementation("io.mockk:mockk:1.13.16")
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.mockk)
 }

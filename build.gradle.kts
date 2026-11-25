@@ -1,12 +1,14 @@
 plugins {
-    kotlin("jvm") version "1.9.25" apply false
-    kotlin("plugin.spring") version "1.9.25" apply false
-    kotlin("plugin.serialization") version "1.9.25" apply false
-    kotlin("plugin.jpa") version "1.9.25" apply false
-    id("org.springframework.boot") version "3.4.4" apply false
-    id("io.spring.dependency-management") version "1.1.7"
-    id("io.gitlab.arturbosch.detekt") version "1.23.6"
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.kotlin.spring) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.kotlin.jpa) apply false
+    alias(libs.plugins.spring.boot) apply false
+    alias(libs.plugins.dependency.management)
 }
+
+// subprojects 블록 안에서는 libs 접근자를 사용할 수 없으므로, 블록 밖에서 값을 변수로 선언해 참조한다.
+val springBootBom = libs.spring.boot.bom.get().toString()
 
 allprojects {
     group = "com.seriouschoi"
@@ -19,24 +21,10 @@ allprojects {
 
 subprojects {
     apply(plugin = "io.spring.dependency-management")
-    apply(plugin = "io.gitlab.arturbosch.detekt")
 
-    configurations.matching { it.name.startsWith("detekt") }.all {
-        resolutionStrategy.eachDependency {
-            if (requested.group == "org.jetbrains.kotlin") {
-                useVersion("1.9.23")
-            }
-        }
-    }
-
-    configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
-        config.setFrom(rootProject.files("config/detekt/detekt.yml"))
-        buildUponDefaultConfig = true
-    }
-    
     the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().apply {
         imports {
-            mavenBom("org.springframework.boot:spring-boot-dependencies:3.4.4")
+            mavenBom(springBootBom)
         }
     }
 

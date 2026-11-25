@@ -1,0 +1,74 @@
+# 의존성 버전 카탈로그. 모듈은 libs.xxx 로 참조한다.
+#
+# 규칙
+# - 외부 라이브러리 의존은 버전 유무와 상관없이 모두 여기에 선언하고, 모듈에서는 libs.xxx 로만 쓴다. (project(...) 의존은 제외)
+# - Spring Boot BOM(spring-boot-dependencies)이 관리하는 라이브러리는 버전을 적지 않는다. BOM 버전이 쓰인다.
+#   (BOM이 관리하는 라이브러리에 직접 버전을 적어도, app에서는 BOM 버전이 우선해서 무시된다.)
+# - BOM이 관리하지 않는 라이브러리, 그리고 BOM 버전을 덮어쓰는 예외만 버전을 적는다.
+# - BOM 버전을 덮어쓰는 예외에는 "BOM 덮어쓰기:" 주석을 단다.
+
+[versions]
+kotlin = "1.9.25"
+spring-boot = "3.4.4"
+dependency-management = "1.1.7"
+
+# BOM 덮어쓰기: Docker 29 호환 (#138). app/build.gradle.kts의 extra도 이 값을 쓴다.
+testcontainers = "1.21.4"
+# BOM 덮어쓰기: 기존에 쓰던 버전 유지 (BOM은 3.4.1)
+mariadb = "3.3.3"
+springdoc = "2.7.0"
+mockk = "1.13.16"
+firebase-admin = "9.3.0"
+java-jwt = "4.4.0"
+jwks-rsa = "0.22.1"
+kotlin-logging = "3.0.5"
+swagger-annotations = "2.2.19"
+wiremock = "3.9.2"
+
+[libraries]
+# BOM. build.gradle.kts의 dependencyManagement가 가져온다.
+spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+
+# 버전 없음: Spring Boot BOM이 관리한다.
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
+spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-boot-starter-cache = { module = "org.springframework.boot:spring-boot-starter-cache" }
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
+spring-context = { module = "org.springframework:spring-context" }
+spring-web = { module = "org.springframework:spring-web" }
+spring-tx = { module = "org.springframework:spring-tx" }
+slf4j-api = { module = "org.slf4j:slf4j-api" }
+jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api" }
+jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api" }
+jakarta-inject-api = { module = "jakarta.inject:jakarta.inject-api" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test" }
+caffeine = { module = "com.github.ben-manes.caffeine:caffeine" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+
+# 버전 있음
+testcontainers-mariadb = { module = "org.testcontainers:mariadb", version.ref = "testcontainers" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
+mariadb-java-client = { module = "org.mariadb.jdbc:mariadb-java-client", version.ref = "mariadb" }
+springdoc-openapi-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+firebase-admin = { module = "com.google.firebase:firebase-admin", version.ref = "firebase-admin" }
+java-jwt = { module = "com.auth0:java-jwt", version.ref = "java-jwt" }
+jwks-rsa = { module = "com.auth0:jwks-rsa", version.ref = "jwks-rsa" }
+kotlin-logging = { module = "io.github.microutils:kotlin-logging-jvm", version.ref = "kotlin-logging" }
+swagger-annotations = { module = "io.swagger.core.v3:swagger-annotations", version.ref = "swagger-annotations" }
+wiremock-standalone = { module = "org.wiremock:wiremock-standalone", version.ref = "wiremock" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+dependency-management = { id = "io.spring.dependency-management", version.ref = "dependency-management" }
