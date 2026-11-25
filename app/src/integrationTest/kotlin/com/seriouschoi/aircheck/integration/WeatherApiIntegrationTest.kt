@@ -160,4 +160,14 @@ class WeatherApiIntegrationTest(
         )
         assertEquals(0, recovered.path("errors").size())
     }
+
+    @Test
+    fun `API 문서(OpenAPI)가 만들어지고 날씨 엔드포인트가 들어 있다`() {
+        val response = rest.getForEntity("/api-docs", String::class.java)
+
+        assertEquals(200, response.statusCode.value())
+        val body: JsonNode = objectMapper.readTree(response.body)
+        assertTrue(body.has("openapi"))
+        assertTrue(body.path("paths").has("/api/v1/weather"))
+    }
 }

@@ -4,15 +4,15 @@ plugins {
 
 dependencies {
     // OpenAPI Schema annotations
-    compileOnly("io.swagger.core.v3:swagger-annotations:2.2.19")
+    compileOnly(libs.swagger.annotations)
 
     // DI 표준 어노테이션 (Jakarta EE / JSR-330) — Spring 비의존
-    compileOnly("jakarta.inject:jakarta.inject-api:2.0.1")
+    compileOnly(libs.jakarta.inject.api)
 
     // 로깅 유틸리티 (errorWithId 확장함수 포함)
     implementation(project(":util:logging"))
 
     // Test
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
-    testImplementation("io.mockk:mockk:1.13.16")
+    testImplementation(libs.junit.jupiter)
+    testImplementation(libs.mockk)
 }

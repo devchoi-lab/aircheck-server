@@ -7,13 +7,13 @@ dependencies {
     implementation(project(":core:domain"))
 
     // Spring Web (Controller)
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation(libs.spring.boot.starter.web)
+    implementation(libs.spring.boot.starter.validation)
     
     // Kotlin
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.coroutines.core)
     
     // OpenAPI / Swagger
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+    implementation(libs.springdoc.openapi.webmvc.ui)
 }
