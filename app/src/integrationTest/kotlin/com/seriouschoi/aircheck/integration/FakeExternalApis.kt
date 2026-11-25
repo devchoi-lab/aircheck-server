@@ -53,7 +53,9 @@ object FakeExternalApis {
                 get(urlPathEqualTo("/airkorea/air/getMsrstnAcctoRltmMesureDnsty"))
                     .withQueryParam("stationName", equalTo(stationName))
                     .willReturn(
-                        aResponse().withStatus(200).withHeader("Content-Type", "application/json")
+                        aResponse()
+                            .withStatus(200)
+                            .withHeader("Content-Type", "application/json")
                             .withBody(FakeResponses.airQuality(now, stationName, pm10))
                     )
             )
@@ -77,7 +79,10 @@ object FakeExternalApis {
     private fun stubJson(path: String, body: String) {
         server.stubFor(
             get(urlPathEqualTo(path)).willReturn(
-                aResponse().withStatus(200).withHeader("Content-Type", "application/json").withBody(body)
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(body)
             )
         )
     }
