@@ -162,6 +162,25 @@ class WeatherApiIntegrationTest(
     }
 
     @Test
+    fun `서울 좌표로 부르면 서울 측정소, 부산 좌표로 부르면 부산 측정소의 대기질을 돌려준다`() {
+        // 서울시청
+        val seoul = readAirQuality("/api/v1/weather?lat=37.5665&lng=126.9780")
+        // 부산시청
+        val busan = readAirQuality("/api/v1/weather?lat=35.1796&lng=129.0756")
+
+        assertEquals(FakeResponses.SEOUL_STATION, seoul.path("stationName").asText())
+        assertEquals(FakeResponses.PM10_BY_STATION.getValue(FakeResponses.SEOUL_STATION), seoul.path("pm10").asInt())
+        assertEquals(FakeResponses.BUSAN_STATION, busan.path("stationName").asText())
+        assertEquals(FakeResponses.PM10_BY_STATION.getValue(FakeResponses.BUSAN_STATION), busan.path("pm10").asInt())
+    }
+
+    private fun readAirQuality(url: String): JsonNode {
+        val response = rest.getForEntity(url, String::class.java)
+        assertEquals(200, response.statusCode.value())
+        return objectMapper.readTree(response.body).path("airQuality")
+    }
+
+    @Test
     fun `API 문서(OpenAPI)가 만들어지고 날씨 엔드포인트가 들어 있다`() {
         val response = rest.getForEntity("/api-docs", String::class.java)
 
